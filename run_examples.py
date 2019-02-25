@@ -20,11 +20,10 @@
 from correlationMatrix import source_path
 
 examples_path = source_path + "examples/python/"
-filelist = ['adjust_nr_state', 'calculate_thresholds', 'credit_curves',
-            'empirical_correlation_matrix', 'fix_multiperiod_matrix', 'generate_synthetic_data',
-            'generate_visuals', 'matrix_from_cohort_data', 'matrix_from_duration_data',
-            'matrix_lendingclub', 'matrix_set_lendingclub', 'matrix_operations',
-            'portfolio_model', 'validate_thresholds', 'visualize_thresholds']
+filelist = ['conditional_correlation_matrix',
+            'empirical_correlation_matrix', 'fix_correlation_matrix', 'generate_synthetic_data',
+            'generate_visuals', 'matrix_from_sector_data', 'matrix_operations',
+            'matrix_set_operations']
 
 if __name__ == '__main__':
 

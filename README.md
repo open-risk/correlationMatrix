@@ -1,16 +1,16 @@
 Intro
 =========================
-correlationMatrix is a Python powered library for the statistical analysis and visualization of state correlation 
-phenomena. It can be used to analyze any dataset that captures timestamped correlations in a discrete state space. 
-Use cases include credit rating correlations, system state event logs etc. 
+correlationMatrix is a Python powered library for the statistical analysis and visualization of timeseries correlation 
+phenomena. It can be used to analyze any dataset that captures timestamped values (timeseries) 
+The present use cases focuses on typical analysis of market correlations
 
 You can use correlationMatrix to
 
-- Estimate correlation matrices from historical event data using a variety of estimators
-- Visualize event data and correlation matrices
-- Manipulate correlation matrices (generators, comparisons etc.)
+- Estimate correlation matrices from historical timeseries using a variety of models
+- Visualize correlation matrices
+- Manipulate correlation matrices (fix problematic matrices etc)
 - Provide standardized data sets for testing
-- Model correlations using threshold processes
+
 
 Key Information
 ================
@@ -18,7 +18,7 @@ Key Information
 * Author: [Open Risk](http://www.openriskmanagement.com)
 * License: Apache 2.0
 * Code Documentation: [Read The Docs](https://correlationmatrix.readthedocs.io/en/latest/index.html)
-* Mathematical Documentation: [Open Risk Manual](https://www.openriskmanual.org/wiki/correlation_Matrix)
+* Mathematical Documentation: [Open Risk Manual](https://www.openriskmanual.org/wiki/Correlation_Matrix)
 * Development website: [Github](https://github.com/open-risk/correlationMatrix)
 
 **NB: correlationMatrix is still in active development. If you encounter issues please raise them in our
@@ -28,10 +28,9 @@ Support and Training
 =========================
 
 * The Open Risk Academy has free courses demonstrating the use of the library. The current list is: 
-    * [Analysis of Credit Migration using Python correlationMatrix](https://www.openriskacademy.com/course/view.php?id=38)
+    * [How to estimate an Equity Correlation Matrix using correlationMatrix](https://www.openriskacademy.com/course/view.php?id=44)
 * Commercial Support for correlationMatrix is provided as part of OpenCPM
 
-</pre>
 
 
 Examples
@@ -49,11 +48,11 @@ Sampling correlation data
 
 ![image](examples/sampled_histories.png)
 
-Estimation of correlation matrices using cohort methods
+Estimation of correlation matrices using standard estimators
 
 ![image](examples/estimation.png)
 
-Estimation of correlation matrices using duration methods
+Estimation of correlation matrices using factor models
 
 ![image](examples/correlation_probabilities.png)
 
@@ -61,15 +60,11 @@ Visualization of a correlation matrix
 
 ![image](examples/correlationMatrix.png)
 
-Generating stochastic process correlation thresholds
-
-![image](examples/Thresholds.png)
-
 Stressing correlation Matrices
 
 ![image](examples/stressed_density.png)
 
-Computation and Visualization of Credit Curves
+Computation and Visualization of multi-period correlation matrices
 
 ![image](examples/credit_curves.png)
 

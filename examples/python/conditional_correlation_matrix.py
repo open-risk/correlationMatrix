@@ -13,18 +13,13 @@
 # limitations under the License.
 
 
-""" Derive a conditional migration matrix given a stress scenario
+""" Derive a conditional correlation matrix given a stress scenario
 
-For this example we assume we already have a
-multi-period set of correlation matrices and have already modelled correlation thresholds for
-a given AR process
 
 """
 import numpy as np
 import correlationMatrix as cm
 from datasets import Generic
-from correlationMatrix.thresholds.model import ThresholdSet
-from correlationMatrix.thresholds.settings import AR_Model
 from correlationMatrix import source_path
 dataset_path = source_path + "datasets/"
 

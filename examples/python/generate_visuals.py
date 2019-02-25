@@ -20,7 +20,6 @@ import pandas as pd
 
 import correlationMatrix as cm
 from correlationMatrix import source_path
-from correlationMatrix.estimators import cohort_estimator as es
 
 """
 Example workflows using correlationMatrix to generate visualizations of migration phenomena

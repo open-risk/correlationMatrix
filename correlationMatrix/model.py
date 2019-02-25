@@ -16,7 +16,6 @@
 
 * correlationMatrix_ implements the functionality of single period correlation matrix
 * correlationMatrixSet_ provides a container for a multiperiod correlation matrix collection
-* StateSpace holds information about the stochastic system state space
 * EmpiricalCorrelationMatrix implements the functionality of a continuously observed correlation matrix
 
 """
@@ -28,9 +27,11 @@ import numpy as np
 import pandas as pd
 import requests
 import scipy.stats as sp
-from scipy.linalg import logm
+from scipy.linalg import eigh
+from scipy.linalg import inv
 
 import correlationMatrix as cm
+from correlationMatrix.settings import EIGENVALUE_TOLERANCE
 
 
 class CorrelationMatrix(np.ndarray):
@@ -50,6 +51,7 @@ class CorrelationMatrix(np.ndarray):
     """
 
     def __new__(cls, values=None, dimension=2, json_file=None, csv_file=None):
+
         """ Create a new correlation matrix. Different options for initialization are:
 
         * providing values as a list of list
@@ -77,6 +79,7 @@ class CorrelationMatrix(np.ndarray):
             A = cm.correlationMatrix(values=[[0.6, 0.2, 0.2], [0.2, 0.6, 0.2], [0.2, 0.2, 0.6]])
 
         """
+
         if values is not None:
             # Initialize with given values
             obj = np.asarray(values).view(cls)
@@ -92,11 +95,20 @@ class CorrelationMatrix(np.ndarray):
             # Default instance (2x2 identity matrix)
             default = np.identity(dimension)
             obj = np.asarray(default).view(cls)
-        # validation flag is set to False at initialization
-        obj.validated = False
+
         # temporary dimension assignment (must validated for squareness)
         obj.dimension = obj.shape[0]
+
+        # validation flag is set to False at initialization
+        obj.validated = False
+
         return obj
+
+    def __array_finalize__(self, obj):
+
+        if obj is None: return
+        self.validated = getattr(obj, 'validated', None)
+        self.validated = getattr(obj, 'dimension', None)
 
     def to_json(self, file):
         """
@@ -160,11 +172,12 @@ class CorrelationMatrix(np.ndarray):
             self[i, maxval_index] += row_adjust
 
     def validate(self, accuracy=1e-3):
-        """ Validate required properties of a correlation matrix. The following are checked
+        """ Validate required properties of an input correlation matrix. The following are checked
 
         1. check squareness
-        2. check that all values are probabilities (between 0 and 1)
-        3. check that all rows sum to one
+        2. check symmetry
+        3. check that all values are between -1 and 1 and diagonal elements == 1
+        4. check positive definiteness
 
         :param accuracy: accuracy level to use for validation
         :type accuracy: float
@@ -181,16 +194,22 @@ class CorrelationMatrix(np.ndarray):
             matrix_size = matrix.shape[0]
             # checking that values of matrix are within allowed range
             for i in range(matrix_size):
+                if matrix[i, i] != 1:
+                    validation_messages.append(("Diagonal Values different than 1: ", (i, matrix[i, i])))
                 for j in range(matrix_size):
-                    if matrix[i, j] < 0:
-                        validation_messages.append(("Negative Probabilities: ", (i, j, matrix[i, j])))
+                    if matrix[i, j] < -1:
+                        validation_messages.append(("Values less than -1: ", (i, j, matrix[i, j])))
                     if matrix[i, j] > 1:
-                        validation_messages.append(("Probabilities Larger than 1: ", (i, j, matrix[i, j])))
-            # checking row sums of matrix
+                        validation_messages.append(("Values larger than 1: ", (i, j, matrix[i, j])))
+            # checking symmetry
             for i in range(matrix_size):
-                rowsum = matrix[i].sum()
-                if abs(rowsum - 1.0) > accuracy:
-                    validation_messages.append(("Rowsum not equal to one: ", (i, rowsum)))
+                for j in range(matrix_size):
+                    if matrix[i, j] != matrix[j, i]:
+                        validation_messages.append(("Symmetry violating value: ", (i, j, matrix[i, j])))
+            # checking positive semi-definitess (non-negative eigenvalues)
+            Eigenvalues, Decomposition = eigh(matrix)
+            if not np.all(Eigenvalues > - EIGENVALUE_TOLERANCE):
+                validation_messages.append(("Matrix is not positive semi-definite"))
 
         if len(validation_messages) == 0:
             self.validated = True
@@ -200,18 +219,24 @@ class CorrelationMatrix(np.ndarray):
             self.validated = False
             return validation_messages
 
-    def generator(self, t=1.0):
-        """ Compute the generator of a correlation matrix
+    def inverse(self):
+        """ Compute the inverse of a correlation matrix (assuming it is a valid matrix)
 
-        :param t: the timescale parameter
-        :type t: float
 
         :Example:
 
-        G = A.generator()
+        G = A.inverse()
         """
-        generator = logm(self) / t
-        return generator
+        if self.validated:
+            inverse = inv(self)
+            return inverse
+        else:
+            self.validate()
+            if self.validated:
+                inverse = inv(self)
+                return inverse
+            else:
+                print("Invalid Correlation Matrix")
 
     def characterize(self):
         """ Analyse or classify a correlation matrix according to its properties
@@ -784,47 +809,47 @@ class FactorCorrelationMatrix(CorrelationMatrix):
         return {'rho': rho, 'p': p}
 
     def hierarchical(self):
-    ########## Fit Hierachical Factor Model ##########
-    # we need separate the residuals, if the residuals are correlated with each other, we won't make the garphs.
-    # Basically, in the kiwi paper, he express the residuals only have one sector, but we have five sectors
-    # Firstly we do the sector model, sector indics are just the averages of companies within each sector
-    #
-    # Input:
-    #   CSV file of scaled log-return data
-    #
-    # Output:
-    #   Linear factor model and residuals
-    # rm(list=ls())
-    # library(corrplot)
-    # # Read closing data from csv file
-    # setwd("C:\\Users\\lixua\\Desktop\\version1.4")
-    # # setwd('/home/philippos/Desktop/R_Development/version1.2.1')
-    # source('SectorsNCompanies.R')
-    # # setwd('/home/philippos/Desktop/R_Development/Current')
-    # df < - read.csv('cleaned_returns_data.csv', sep=",")
-    #
-    # ### Calculate the Sector Loadings on the Index and the Sector Residuals ###
-    #
-    # sector_fit < - lm(data.matrix(df[, 51:55])
-    # ~ Index, data = df)
-    # s_load < - sector_fit$coefficients
-    # s_res < - data.frame(sector_fit$residuals)
-    # s_corr < - cor(s_res)
-    # corrplot(s_corr)
-    #
-    # ### Calculate company loadings on the Index and the company Residuals ###
-    #
-    # df2 < - data.frame(df[, 1:50], s_res, df["Index"])
-    #
-    # company_fit < - lm(data.matrix(df2[, 1:50])
-    # ~ Index + S_FINA + S_HLTH + S_TECH + S_OILG + S_CONS, data = df2)
-    # c_load < - company_fit$coefficients
-    # c_res < - data.frame(company_fit$residuals)
-    # c_corr < - cor(c_res)
-    # corrplot(c_corr, tl.cex = 0.5)
-    #
-    #
-    # ### Store Sector and Company Residuales ###
-    # write.table(s_res, file="sector_residuals.csv", sep=",", row.names = FALSE, col.names = TRUE)
-    # write.table(c_res, file="company_residuals.csv", sep=",", row.names = FALSE, col.names = TRUE)
+        ########## Fit Hierachical Factor Model ##########
+        # we need separate the residuals, if the residuals are correlated with each other, we won't make the garphs.
+        # Basically, in the kiwi paper, he express the residuals only have one sector, but we have five sectors
+        # Firstly we do the sector model, sector indics are just the averages of companies within each sector
+        #
+        # Input:
+        #   CSV file of scaled log-return data
+        #
+        # Output:
+        #   Linear factor model and residuals
+        # rm(list=ls())
+        # library(corrplot)
+        # # Read closing data from csv file
+        # setwd("C:\\Users\\lixua\\Desktop\\version1.4")
+        # # setwd('/home/philippos/Desktop/R_Development/version1.2.1')
+        # source('SectorsNCompanies.R')
+        # # setwd('/home/philippos/Desktop/R_Development/Current')
+        # df < - read.csv('cleaned_returns_data.csv', sep=",")
+        #
+        # ### Calculate the Sector Loadings on the Index and the Sector Residuals ###
+        #
+        # sector_fit < - lm(data.matrix(df[, 51:55])
+        # ~ Index, data = df)
+        # s_load < - sector_fit$coefficients
+        # s_res < - data.frame(sector_fit$residuals)
+        # s_corr < - cor(s_res)
+        # corrplot(s_corr)
+        #
+        # ### Calculate company loadings on the Index and the company Residuals ###
+        #
+        # df2 < - data.frame(df[, 1:50], s_res, df["Index"])
+        #
+        # company_fit < - lm(data.matrix(df2[, 1:50])
+        # ~ Index + S_FINA + S_HLTH + S_TECH + S_OILG + S_CONS, data = df2)
+        # c_load < - company_fit$coefficients
+        # c_res < - data.frame(company_fit$residuals)
+        # c_corr < - cor(c_res)
+        # corrplot(c_corr, tl.cex = 0.5)
+        #
+        #
+        # ### Store Sector and Company Residuales ###
+        # write.table(s_res, file="sector_residuals.csv", sep=",", row.names = FALSE, col.names = TRUE)
+        # write.table(c_res, file="company_residuals.csv", sep=",", row.names = FALSE, col.names = TRUE)
         pass

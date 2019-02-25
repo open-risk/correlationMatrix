@@ -2,27 +2,24 @@ correlationMatrix
 =========================
 
 correlationMatrix is a Python powered library for the statistical analysis and visualization of correlation phenomena.
-It can be used to analyze any dataset that captures timestamped correlations in a discrete state space.
-Use cases include credit rating correlations, system state event logs and more.
+It can be used to analyze any dataset that captures timestamped values (timeseries)
 
 * Author: `Open Risk <http://www.openriskmanagement.com>`_
 * License: Apache 2.0
 * Code Documentation: `Read The Docs <https://correlationmatrix.readthedocs.io/en/latest/>`_
-* Mathematical Documentation: `Open Risk Manual <https://www.openriskmanual.org/wiki/correlation_Matrix>`_
+* Mathematical Documentation: `Open Risk Manual <https://www.openriskmanual.org/wiki/Correlation_Matrix>`_
 * Training: `Open Risk Academy <https://www.openriskacademy.com/login/index.php>`_
 * Development Website: `Github <https://github.com/open-risk/correlationMatrix>`_
-* Discussion: `Gitter <https://gitter.im/open-risk/correlationMatrix>`_
 
 Functionality
 -------------
 
 You can use correlationMatrix to
 
-- Estimate correlation matrices from historical event data using a variety of estimators
-- Visualize event data and correlation matrices
-- Characterise correlation matrices
-- Manipulate correlation matrices (derive generators, perform comparisons, stress correlation rates etc.)
-- Access standardized datasets for testing
+- Estimate correlation matrices from historical timeseries using a variety of models
+- Visualize correlation matrices
+- Manipulate correlation matrices (fix problematic matrices etc)
+- Provide standardized data sets for testing
 
 **NB: correlationMatrix is still in active development. If you encounter issues please raise them in our
 github repository**
@@ -30,16 +27,15 @@ github repository**
 Architecture
 ------------
 
-* transitioMatrix supports file input/output in json and csv formats
-* it has a powerful API for handling event data (based on pandas)
+* correlationMatrix supports file input/output in json and csv formats
 * provides intuitive objects for handling correlation matrices individually and as sets (based on numpy)
 * supports visualization using matplotlib
 
 Links to other open source software
 -----------------------------------
 
-- Duration based estimators are similar to etm, an R package for estimating empirical correlation matrices
-- There is some overlap with lower dimensionality (survival) models like lifelines
+- correlationMatrix makes use of lower level methods available in numpy, scipy and statsmodels
+- There is a sister project for estimating transition rates transionMatrix
 
 Installation
 =======================
@@ -50,7 +46,7 @@ Dependencies
 -----------------
 
 - correlationMatrix requires Python 3
-- It depends on numerical and data processing Python libraries (Numpy, Scipy, Pandas)
+- It depends on numerical and data processing Python libraries (Numpy, Scipy, Pandas, stastmodels)
 - The Visualization API depends on Matplotlib
 - The precise dependencies are listed in the requirements.txt file.
 - correlationMatrix may work with earlier versions of these packages but this has not been tested.
@@ -104,10 +100,7 @@ The distribution has the following structure:
 
 | correlationMatrix         The library source code
 |    model.py              Main data structures
-|    estimators            Estimator methods
 |    utils                 Helper classes and methods
-|    thresholds            Algorithms for calibrating AR(n) process thresholds to input correlation rates
-|    portfolio_model_lib   Collection of portfolio analytic solutions
 | examples                 Usage examples
 | datasets                 Contains a variety of datasets useful for getting started with correlationMatrix
 | tests                    Testing suite
@@ -133,5 +126,5 @@ Look at the examples directory for a variety of typical workflows.
 
 For more in depth study, the Open Risk Academy has courses elaborating on the use of the library
 
-- Analysis of Credit Migration using Python correlationMatrix: https://www.openriskacademy.com/course/view.php?id=38
+- How to estimate an Equity Correlation Matrix using correlationMatrix: https://www.openriskacademy.com/course/view.php?id=44
 

@@ -5,7 +5,7 @@ to contribute to the development of correlationMatrix by creating Issues or Pull
 
 Preprocessing
 -------------
-- Native handling of Wide Data Format
+- More sophisticated approaches to missing data imputation
 
 Statistical
 -----------
@@ -13,13 +13,13 @@ Statistical
 - Further validation and characterisation of correlation matrices
 - Fixing common problems encountered by empirically estimated correlation matrices
 - Generate random matrices subject to constraints
-- Duration based methods
-- Bootstrap based confidence intervals
-- Absorbing state Identification, Competing risks
+- Confidence intervals
+- Additional correlation models
+
 
 Implementation
 --------------
 
-- Sphinx documentation
+- Expand Sphinx documentation
 - Introduce visualization objects / API
 

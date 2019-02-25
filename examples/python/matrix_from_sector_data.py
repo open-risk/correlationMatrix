@@ -23,7 +23,7 @@ import pandas as pd
 
 import correlationMatrix as cm
 from correlationMatrix import source_path
-from correlationMatrix.estimators import cohort_estimator as es
+
 
 dataset_path = source_path + "datasets/"
 

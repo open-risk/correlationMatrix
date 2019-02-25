@@ -14,8 +14,8 @@
 
 
 """
-Example workflows using correlationMatrix to estimate an empirical correlation matrix from timeseries data
-The datasets are produced in examples/generate_synthetic_data.py
+Example workflows using correlationMatrix to estimate an empirical correlation matrix from
+timeseries data. The datasets are produced in examples/generate_synthetic_data.py
 
 """
 import matplotlib.pyplot as plt
@@ -24,7 +24,6 @@ import pandas as pd
 
 import correlationMatrix as cm
 from correlationMatrix import source_path
-from correlationMatrix.estimators import aalen_johansen_estimator as aj
 from correlationMatrix.utils.converters import datetime_to_float
 
 dataset_path = source_path + "datasets/"
