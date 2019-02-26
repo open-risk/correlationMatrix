@@ -41,7 +41,7 @@ example = 1
 # n entities with ~10 observations each, [0,1] state, 50%/50% correlation matrix
 print("> Step 1: Load the data set into a pandas frame")
 if example == 1:
-    data = pd.read_csv(dataset_path + 'synthetic_data7.csv', dtype={'State': str})
+    data = pd.read_csv(dataset_path + 'synthetic_data1.csv')
 elif example == 2:
     data = pd.read_csv(dataset_path + 'synthetic_data8.csv', dtype={'State': str})
 elif example == 3:
@@ -50,34 +50,27 @@ elif example == 3:
     bounds, data = datetime_to_float(data)
     print('Start and End dates', bounds)
 
-sorted_data = data.sort_values(['Time', 'ID'], ascending=[True, True])
-print(sorted_data.head(5))
-print(sorted_data.describe())
+# print(data.head(5))
+# print(data.describe())
+# print(len(data.index))
 
-# Step 2
-# Describe and validate the State Space against the data
-print("> Step 2: Describe and validate the State Space against the data")
-# We insert the expected labels of the state space
-if example == 1 or example == 3:
-    definition = [('0', "AAA"), ('1', "AA"), ('2', "A"), ('3', "BBB"),
-                  ('4', "BB"), ('5', "B"), ('6', "CCC"), ('7', "D")]
-elif example == 2:
-    definition = [('0', "G"), ('1', "B")]
-myState = cm.StateSpace(definition)
-myState.describe()
-# We validate that indeed the data set conforms to our expectations
-labels = {'State': 'From'}
-print(myState.validate_dataset(dataset=sorted_data, labels=labels))
-labels = {'State': 'To'}
-print(myState.validate_dataset(dataset=sorted_data, labels=labels))
 
-# Step 3
-# Estimate matrices using the Aalen-Johansen estimator
-print("> Step 3: Estimate matrices using the Aalen-Johansen estimator")
-myEstimator = aj.AalenJohansenEstimator(states=myState)
-labels = {'Timestamp': 'Time', 'From_State': 'From', 'To_State': 'To', 'ID': 'ID'}
-etm, times = myEstimator.fit(sorted_data, labels=labels)
+# Step
+# Estimate the empirical correlation matrix using the Pearson measure
+print("> Step 3: Estimate the empirical correlation matrix using the Pearson measure")
+myMatrix = cm.EmpiricalCorrelationMatrix()
+print(myMatrix.validated)
+# print(type(myMatrix))
+# myMatrix.print()
+myMatrix.pearsonr(data)
+myMatrix.print()
+myMatrix.validate()
+print(myMatrix.validated)
+# myEstimator = aj.AalenJohansenEstimator(states=myState)
+# labels = {'Timestamp': 'Time', 'From_State': 'From', 'To_State': 'To', 'ID': 'ID'}
+# etm, times = myEstimator.fit(sorted_data, labels=labels)
 
+"""
 # Step 4
 # Print the cumulative computed matrix
 print("> Step 4: Print the cumulative computed matrix")
@@ -122,3 +115,5 @@ if example == 1 or example == 3:
     # plt.title("Multi-period correlation Probabilities")
     plt.savefig("correlation_probabilities.png")
     plt.show()
+
+"""

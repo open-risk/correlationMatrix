@@ -20,9 +20,9 @@
 from correlationMatrix import source_path
 
 examples_path = source_path + "examples/python/"
-filelist = ['conditional_correlation_matrix',
-            'empirical_correlation_matrix', 'fix_correlation_matrix', 'generate_synthetic_data',
-            'generate_visuals', 'matrix_from_sector_data', 'matrix_operations',
+filelist = ['matrix_operations', 'fix_correlation_matrix', 'generate_synthetic_data', 'empirical_correlation_matrix',
+            'conditional_correlation_matrix',
+            'generate_visuals', 'matrix_from_sector_data',
             'matrix_set_operations']
 
 if __name__ == '__main__':

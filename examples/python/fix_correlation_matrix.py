@@ -22,6 +22,21 @@ import correlationMatrix as cm
 import numpy as np
 from correlationMatrix import dataset_path
 
+print("> Initialize an invalid matrix")
+B = cm.CorrelationMatrix(values=[[-0.6, 0.2, 0.2], [0.2, 0.6, 0.2], [0.2, 0.2, 0.6]])
+B.print()
+
+B.fix_negative_values()
+B.print()
+
+# C = cm.EmpiricalCorrelationMatrix(values=[[-0.6, 0.2, 0.2], [0.2, 0.6, 0.2], [0.2, 0.2, 0.6]])
+# C.print()
+#
+# C.fix_negative_values()
+# C.print()
+
+"""
+
 print("> Loading historical multi-period correlational matrices (cumulative mode) from csv file")
 SnP_Set0 = cm.CorrelationMatrixSet(csv_file=dataset_path + "sp_1981-2016.csv", temporal_type='Cumulative')
 print("> Validate")
@@ -55,3 +70,5 @@ print(SnP_Set2.validate())
 print("> Hurrah, we have a probability matrix set. Lets save it")
 
 SnP_Set2.to_json(dataset_path + 'sp_1981-2016.json', accuracy=5)
+
+"""

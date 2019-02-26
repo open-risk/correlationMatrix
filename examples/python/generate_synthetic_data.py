@@ -16,11 +16,11 @@
 """
 Example workflows using correlationMatrix to generate synthetic data
 
-The first three examples produce "duration" type data. Estimating correlations
-for duration data is done directly with duration type estimators or after
-cohorting (binning) the data for cohort (frequency) type estimators
+1.
+2.
+3.
+4.
 
-The subsequent three examples product cohort type data using markov chain simulation
 
 """
 
@@ -32,36 +32,22 @@ from correlationMatrix.utils import dataset_generators
 
 dataset_path = source_path + "datasets/"
 
-# DURATION TYPE DATASETS (Compact format)
-# 1-> This dataset simulates single entity correlations
-# 2-> Multiple Entities with simple state space observed over continuous short time interval
-# 3-> Multiple Entities with Medium sized State space observed over continuous long time interval
-
-# COHORT TYPE DATASETS
-# 4-> S&P Credit Rating Migration Matrix
-# 5-> Single entity observed over discrete short time interval
-# 6-> Simplest absorbing state case for validation purposes
-
-# DURATION TYPE DATASETS (Long format)
-# 7-> S&P Credit Rating Migration Matrix
-# 8-> Simplest absorbing state case for validation purposes (Duration estimator)
-# 9-> Example with dates in string formats
-
-dataset = 9
+# select the data set to produce
+dataset = 1
 
 #
 # Duration type datasets in Compact Format
 #
 if dataset == 1:
-    # This dataset simulates single entity correlations
-    # State Space definition
-    myState = cm.StateSpace([('0', "A"), ('1', "B"), ('2', "C"), ('3', "D")])
-    # myState.describe()
-    # n: number of entities
+    # This dataset creates the simplest possibe (uniform single factor) correlation matrix
+    # Correlation Matrix definition
+    # n: number of entities to generate
+    myMatrix = cm.CorrelationMatrix(type='UniformSingleFactor', rho=0.2, n=10)
+    myMatrix.print()
+    # Generate multivariate normal data with that correlation matrix (a pandas frame)
     # s: number of samples per entity
-    data = dataset_generators.exponential_correlations(myState, n=1, sample=100, rate=0.1)
-    sorted_data = data.sort_values(['ID', 'Time'], ascending=[True, True])
-    sorted_data.to_csv(dataset_path + 'synthetic_data1.csv', index=False)
+    data = dataset_generators.multivariate_normal(myMatrix, sample=1000)
+    data.to_csv(dataset_path + 'synthetic_data1.csv', index=False)
 
 elif dataset == 2:
     # Second example: Multiple Entities observed over continuous short time interval

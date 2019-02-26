@@ -34,7 +34,8 @@ import correlationMatrix as cm
 from correlationMatrix.settings import EIGENVALUE_TOLERANCE
 
 
-class CorrelationMatrix(np.ndarray):
+class CorrelationMatrix:
+    # class CorrelationMatrix(np.matrix):
     """ The _`correlationMatrix` object implements a typical (one period) `correlation matrix <https://www.openriskmanual.org/wiki/correlation_Matrix>`_.
     The class inherits from numpy ndarray (instead of matrix because the latter will be deprecated
 
@@ -43,30 +44,34 @@ class CorrelationMatrix(np.ndarray):
     It forms the building block of the correlationMatrixSet_ which holds a collection of matrices
     in increasing temporal order (to capture systems with time varying correlation)
 
-    This class does not implement any estimation method, this task is relegated to subclasses
+    This class does not implement any estimation method, this task is relegated to classes
     EmpiricalCorrelationMatrix -> Full empirical estimation
     FactorCorrelationMatrix -> Factor Model estimation
     PCAMatrix -> PCA Model estimation
 
     """
 
-    def __new__(cls, values=None, dimension=2, json_file=None, csv_file=None):
+    def __init__(self, values=None, type=None, json_file=None, csv_file=None, **kwargs):
 
-        """ Create a new correlation matrix. Different options for initialization are:
+        """ Create a new correlation matrix.
+
+        Different options for initialization are:
 
         * providing values as a list of list
         * providing values as a numpy array
-        * loading from a csv file
-        * loading from a json file
+        * indicating matrix type and additional parameters
+        * loading values from a csv file
+        * loading values from a json file
 
-        Without data, a default identity matrix is generated with user specified dimension
+        The above initializations are mutually exclusive and are tested until a valid option is
+        found. Without a valid option, a default identity matrix is generated
 
         :param values: initialization values
-        :param dimension: matrix dimensionality (default is 2)
+        :param type: matrix dimensionality (default is 2)
         :param json_file: a json file containing correlation matrix data
         :param csv_file: a csv file containing correlation matrix data
         :type values: list of lists or numpy array
-        :type dimension: int
+        :type type: string
         :returns: returns a correlationMatrix object
         :rtype: object
 
@@ -82,33 +87,46 @@ class CorrelationMatrix(np.ndarray):
 
         if values is not None:
             # Initialize with given values
-            obj = np.asarray(values).view(cls)
+            print('given values', values)
+            self.matrix = np.asarray(values)
+            self.validated = False
+        elif type is not None:
+            print('given type')
+            self.matrix = np.identity(2)
+            if type == 'UniformSingleFactor':
+                rho = kwargs.get('rho')
+                n = kwargs.get('n')
+                tmp1 = np.identity(n)
+                tmp2 = rho * (np.tri(n) - tmp1)
+                tmp3 = tmp2.transpose()
+                self.matrix = np.asarray(tmp1 + tmp2 + tmp3)
+            elif type == 'TBD':
+                pass
+            else:
+                pass
+            # validation flag is set to True for modelled Matrices
+            self.validated = True
         elif json_file is not None:
+            print('given file')
             # Initialize from file in json format
             q = pd.read_json(json_file)
-            obj = np.asarray(q.values).view(cls)
+            self.matrix = np.asarray(q.values)
+            self.validated = False
         elif csv_file is not None:
+            print('given file')
             # Initialize from file in csv format
             q = pd.read_csv(csv_file, index_col=None)
-            obj = np.asarray(q.values).view(cls)
+            self.matrix = np.asarray(q.values)
+            self.validated = False
         else:
+            print('no input')
             # Default instance (2x2 identity matrix)
-            default = np.identity(dimension)
-            obj = np.asarray(default).view(cls)
+            default = np.identity(2)
+            self.matrix = np.asarray(default)
+            self.validated = False
 
         # temporary dimension assignment (must validated for squareness)
-        obj.dimension = obj.shape[0]
-
-        # validation flag is set to False at initialization
-        obj.validated = False
-
-        return obj
-
-    def __array_finalize__(self, obj):
-
-        if obj is None: return
-        self.validated = getattr(obj, 'validated', None)
-        self.validated = getattr(obj, 'dimension', None)
+        self.dimension = self.matrix.shape[0]
 
     def to_json(self, file):
         """
@@ -117,7 +135,7 @@ class CorrelationMatrix(np.ndarray):
         :param file: json filename
         """
 
-        q = pd.DataFrame(self)
+        q = pd.DataFrame(self.matrix)
         q.to_json(file, orient='values')
 
     def to_csv(self, file):
@@ -127,7 +145,7 @@ class CorrelationMatrix(np.ndarray):
         :param file: csv filename
         """
 
-        q = pd.DataFrame(self)
+        q = pd.DataFrame(self.matrix)
         q.to_csv(file, index=None)
 
     def to_html(self, file=None):
@@ -138,38 +156,20 @@ class CorrelationMatrix(np.ndarray):
             file.close()
         return html_table
 
-    def fix_rowsums(self):
-        """
-        If the row sum is not identically unity, correct the diagonal element to enforce
-
-        """
-
-        matrix = self
-        matrix_size = matrix.shape[0]
-        for i in range(matrix_size):
-            diagonal = matrix[i, i]
-            rowsum = matrix[i].sum()
-            self[i, i] = diagonal + 1.0 - rowsum
-
-    def fix_negativerates(self):
+    def fix_negative_values(self):
         """
         If a matrix entity is below zero, set to zero and correct the diagonal element to enforce
 
         """
 
-        matrix = self
+        matrix = self.matrix
         matrix_size = matrix.shape[0]
         # For all rows
+        # Search all cols for negative entries
         for i in range(matrix_size):
-            maxval_index = self[i].argmax()
-            row_adjust = 0.0
-            # Search all cols for negative entries
             for j in range(matrix_size):
                 if matrix[i, j] < 0.0:
-                    row_adjust += matrix[i, j]
-                    self[i, j] = 0.0
-            # Add the adjustment to the diagonal
-            self[i, maxval_index] += row_adjust
+                    self.matrix[i, j] = 0.0
 
     def validate(self, accuracy=1e-3):
         """ Validate required properties of an input correlation matrix. The following are checked
@@ -186,7 +186,7 @@ class CorrelationMatrix(np.ndarray):
         """
         validation_messages = []
 
-        matrix = self
+        matrix = self.matrix
         # checking squareness of matrix
         if matrix.shape[0] != matrix.shape[1]:
             validation_messages.append(("Matrix Dimensions Differ: ", matrix.shape))
@@ -228,12 +228,12 @@ class CorrelationMatrix(np.ndarray):
         G = A.inverse()
         """
         if self.validated:
-            inverse = inv(self)
+            inverse = inv(self.matrix)
             return inverse
         else:
             self.validate()
             if self.validated:
-                inverse = inv(self)
+                inverse = inv(self.matrix)
                 return inverse
             else:
                 print("Invalid Correlation Matrix")
@@ -248,7 +248,7 @@ class CorrelationMatrix(np.ndarray):
 
         outcome_messages = []
         if self.validated is True:
-            matrix = self
+            matrix = self.matrix
             matrix_size = matrix.shape[0]
             dominance = True
             for i in range(matrix_size):
@@ -278,40 +278,27 @@ class CorrelationMatrix(np.ndarray):
         :type accuracy: int
 
         """
-        for s_in in range(self.shape[0]):
-            for s_out in range(self.shape[1]):
+        for s_in in range(self.matrix.shape[0]):
+            for s_out in range(self.matrix.shape[1]):
                 if format_type is 'Standard':
                     format_string = "{0:." + str(accuracy) + "f}"
-                    print(format_string.format(self[s_in, s_out]) + ' ', end='')
+                    print(format_string.format(self.matrix[s_in, s_out]) + ' ', end='')
                 elif format_type is 'Percent':
-                    print("{0:.2f}%".format(100 * self[s_in, s_out]) + ' ', end='')
+                    print("{0:.2f}%".format(100 * self.matrix[s_in, s_out]) + ' ', end='')
             print('')
         print('')
 
-    def remove(self, state, method):
-        """ Remove a correlation matrix state and distribute its probability to other states according
-        to prescribed method
-
-        :param state: the state to remove
-        :type state: int
-
-        :returns: a correlation matrix
-
+    def decompose(self, method):
         """
-        new_matrix = cm.CorrelationMatrix(dimension=self.shape[0] - 1)
-        states = list(range(self.shape[0]))
-        del states[state]
-        # process all rows of the matrix except the state we remove
-        for i in states:
-            # probability to distribute
-            xp = self[i, state]
-            if 0.0 < xp < 1.0:
-                # process all columns of the matrix except the state we remove
-                w = xp / (1.0 - xp)
-                for j in states:
-                    # weight of state among remaining states
-                    new_matrix[i, j] = self[i, j] * (1.0 + w)
-        return new_matrix
+        Create a decomposition of the correlation matrix according to the selected method
+        :param method:
+        :return:
+        """
+        pass
+
+    @property
+    def validation_status(self):
+        return self.validated
 
 
 class CorrelationMatrixSet(object):
@@ -548,56 +535,18 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
     It stores matrices estimated using any of the standard correlation metrics
     (Pearson, Kendal, Tau)
 
-    The EmpiricalCorrelationMatrix object is different from the correlationMatrixSet in that it stores detailed event time
-    of observations and the correlation densities in addition to the correlation probabilities
-
-    An EmpiricalCorrelationMatrix can be converted into a correlationMatrixSet by sampling on a temporal grid (but not
-    vice-versa)
-
 
     """
 
-    def __init__(self, dimension=2, values=None, observation_times=None, json_file=None,
-                 csv_file=None):
-        CorrelationMatrix.__init__(self)
+    def __init__(self, **kwargs):
 
-        """ Create a new probability matrix. Different options for initialization are:
+        super().__init__(values=None, type=None, json_file=None, csv_file=None, **kwargs)
 
-        * providing values as a 3D numpy array of signature (S, S, T) and observation times as a list or numpy array of length T
-        * loading from a csv file
-        * loading from a json file
-
-        Without data, a default identity matrix is generated with user specified dimension
-
-        :param values: initialization values
-        :param dimension: matrix dimensionality (default is 2)
-        :param observation_times: List with the timesteps (support) of correlation observations
-        :param json_file: a json file containing correlation matrix data
-        :param csv_file: a csv file containing correlation matrix data
-
-        :type values: 3D numpy array
-        :type dimension: int
-        :type observations: int
-        :type json_file: str
-        :type csv_file: str
-
-        :returns: returns a EmpiricalCorrelationMatrix object
-        :rtype: object
-
-        .. note:: The initialization in itself does not validate if the provided values form indeed a correlation matrix set
-
-        :Example:
-
-        Instantiate a correlation probability matrix
-
-        .. code-block:: python
+        """ Create a new correlations matrix from sampled data
+        
 
         """
-
-        self.values = values
-        self.observation_times = observation_times
-
-        return
+        # self.samples = kwargs.get('samples')
 
     def get_data(self, data_url):
         r = requests.get(data_url)
@@ -621,14 +570,15 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
         y = new_values2
         return x, y
 
-    # inputs to the library are assumed to be
-
     # calculate the pearson correlation
-    def pearsonr(self, dates1, values1, dates2, values2):
+    def pearsonr(self, data):
         # make input1 and input2 uniform
-        x, y = self.make_uniform(dates1, values1, dates2, values2)
-        rho, p = sp.pearsonr(x, y)
-        return rho, p
+        # x, y = self.make_uniform(dates1, values1, dates2, values2)
+        # rho, p = sp.pearsonr(x, y)
+        # return rho, p
+        print('Inside', type(self))
+        rho = data.corr(method='pearson').values
+        self.matrix = rho
 
     # calculate the kendall correlation
     def kendallr(self, dates1, values1, dates2, values2):

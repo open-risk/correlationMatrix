@@ -57,8 +57,8 @@ F.print()
 print(F.validate())
 
 # Getting matrix info (dimensions, shape)
-print(F.ndim)
-print(F.shape)
+# print(F.ndim)
+# print(F.shape)
 
 print("> Use pandas style API for saving to files")
 A.to_csv("TestMatrix.csv")
@@ -70,5 +70,5 @@ print(A.inverse())
 
 
 print("> Check that the product of the inverse and correlation matrix is the identify matrix")
-print(np.matmul(A, A.inverse()))
+print(np.matmul(A.matrix, A.inverse()))
 
