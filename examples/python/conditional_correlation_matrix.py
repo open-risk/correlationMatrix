@@ -24,41 +24,21 @@ from correlationMatrix import source_path
 dataset_path = source_path + "datasets/"
 
 
-# Initialize a threshold set from file
-As = ThresholdSet(json_file=dataset_path + 'generic_thresholds.json')
+# Initialize a correlation matrix from the available examples
+myMatrix = cm.CorrelationMatrix(json_file='Generic.json')
 
-# Inspect values (we assume these inputs have already been validated after generation!)
-# As.print(accuracy=4)
 
-# Specify the initial rating of interest
-ri = 3
+# Select method to stress
 
-# As.plot(ri)
+# TODO Perform PCA Analysis
 
-# Initialize a conditional migration matrix with the given thresholds
 
-Q = cm.ConditionalcorrelationMatrix(thresholds=As)
+# TODO Introduce A scenario shift of PCA vectors
 
-# # Q.print()
-#
-# print(dir(Q))
-#
+
 # Specify the stress factor for all periods (in this example five)
-Scenario = np.zeros((Q.periods), dtype=float)
+Scenario = []
 
-Scenario[0] = 2.0
-Scenario[1] = 2.0
-Scenario[2] = - 2.0
-Scenario[3] = - 2.0
-Scenario[4] = 0.0
+# TODO stress API
+# myMatrix.stress(Scenario, Method)
 
-# Specify sensitivity to stress
-rho = 0.5
-
-# Calculate conditional correlation rates for an initial state (5)
-Q.fit(AR_Model, Scenario, rho, ri)
-# Print the conditional correlation rates for that rating
-Q.print_matrix(format_type='Standard', accuracy=4, state=ri)
-# Graph the modelled survival densities versus migration thresholds
-Q.plot_densities(state=ri)
-# Q.plot_densities(1, ri)

@@ -16,9 +16,9 @@
 """
 Example workflows using correlationMatrix to generate synthetic data
 
-1.
-2.
-3.
+1. Uniform single factor correlations among a number of entities
+2. Multiple entities correlated with a single market factor
+3. Multiple entities correlated with multiple factors
 4.
 
 
@@ -33,7 +33,7 @@ from correlationMatrix.utils import dataset_generators
 dataset_path = source_path + "datasets/"
 
 # select the data set to produce
-dataset = 1
+dataset = 3
 
 #
 # Duration type datasets in Compact Format
@@ -50,18 +50,28 @@ if dataset == 1:
     data.to_csv(dataset_path + 'synthetic_data1.csv', index=False)
 
 elif dataset == 2:
-    # Second example: Multiple Entities observed over continuous short time interval
-    myState = cm.StateSpace([('0', "Basic"), ('1', "Default")])
-    data = dataset_generators.exponential_correlations(myState, n=1000, sample=10, rate=0.1)
-    sorted_data = data.sort_values(['ID', 'Time'], ascending=[True, True])
-    sorted_data.to_csv(dataset_path + 'synthetic_data2.csv', index=False)
+    # This dataset creates a correlation matrix between entities and an exogenous market factor
+    # "CAPM Style"
+    # n: number of entities
+    # b: vector of loadings
+    # s: number of samples
+    b = [0.2, 0.3, 0.5]
+    data = dataset_generators.capm_model(n=len(b), b=b, sample=10000)
+    data.to_csv(dataset_path + 'synthetic_data2.csv', index=False)
 
 elif dataset == 3:
-    # Third example: Multiple Entities with Medium sized State space observed over continuous long time interval
-    myState = cm.StateSpace([('0', "A"), ('1', "B"), ('2', "C"), ('3', "D"), ('4', "E"), ('5', "F"), ('6', "G")])
-    data = dataset_generators.exponential_correlations(myState, n=100, sample=20, rate=0.1)
-    sorted_data = data.sort_values(['ID', 'Time'], ascending=[True, True])
-    sorted_data.to_csv(dataset_path + 'synthetic_data3.csv', index=False)
+    # This dataset creates a correlation matrix between entities and a set of exogenous market factors
+    # NOTE: The market factors are assumed uncorrelated - this is useful for testing purposes
+    # "APT Style"
+    # n: number of entities
+    # b: vector of loadings of entities to different market factors (assumed uniform)
+    # rho: correlation matrix of factors of size m
+    # s: number of samples
+    b = [0.2, 0.2, 0.2]
+    m = 3
+    rho = cm.CorrelationMatrix(type='UniformSingleFactor', rho=0.0, n=m)
+    data = dataset_generators.apt_model(n=10, b=b, m=len(b), rho=rho, sample=10000)
+    data.to_csv(dataset_path + 'synthetic_data3.csv', index=False)
 
 #
 # Cohort type datasets

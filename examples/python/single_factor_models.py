@@ -28,11 +28,13 @@ from correlationMatrix.utils.converters import datetime_to_float
 
 dataset_path = source_path + "datasets/"
 
-# Example 1: Uniform single factor model
-# Example 2: Grouped loadings
-# Example 3: Individual loadings
+# Example 1: Uniform correlation multivariate model
+# Example 2: CAPM style Model
+# Example 3: APT style Model with uncorrelated market factors
+# Example 4: Grouped loadings
+# Example 5: Individual loadings
 
-example = 1
+example = 3
 
 # Step 1
 # Load the data set into a pandas frame
@@ -47,10 +49,13 @@ if example == 1:
     myMatrix.fit(data, method='UniformSingleFactor')
     # myMatrix.print()
 elif example == 2:
-    data = pd.read_csv(dataset_path + 'synthetic_data8.csv', dtype={'State': str})
+    data = pd.read_csv(dataset_path + 'synthetic_data2.csv')
+    print("> Step 2: Estimate CAPM style model")
+    myMatrix = cm.FactorCorrelationMatrix()
+    myMatrix.fit(data, method='CAPMModel')
 elif example == 3:
-    data = pd.read_csv(dataset_path + 'synthetic_data9.csv', parse_dates=True)
-    # convert datetime data to floats, return also the observation window data
-    bounds, data = datetime_to_float(data)
-    print('Start and End dates', bounds)
+    data = pd.read_csv(dataset_path + 'synthetic_data3.csv')
+    print("> Step 2: Estimate APT style model")
+    myMatrix = cm.FactorCorrelationMatrix()
+    myMatrix.fit(data, method='APTModel')
 
