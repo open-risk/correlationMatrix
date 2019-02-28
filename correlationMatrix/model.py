@@ -29,6 +29,11 @@ import requests
 import scipy.stats as sp
 from scipy.linalg import eigh
 from scipy.linalg import inv
+import statsmodels.multivariate.multivariate_ols as ols
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import scale
+
+import matplotlib.pyplot as plt
 
 import correlationMatrix as cm
 from correlationMatrix.settings import EIGENVALUE_TOLERANCE
@@ -91,7 +96,6 @@ class CorrelationMatrix:
             self.matrix = np.asarray(values)
             self.validated = False
         elif type is not None:
-            print('given type')
             self.matrix = np.identity(2)
             if type == 'UniformSingleFactor':
                 rho = kwargs.get('rho')
@@ -107,19 +111,16 @@ class CorrelationMatrix:
             # validation flag is set to True for modelled Matrices
             self.validated = True
         elif json_file is not None:
-            print('given file')
             # Initialize from file in json format
             q = pd.read_json(json_file)
             self.matrix = np.asarray(q.values)
             self.validated = False
         elif csv_file is not None:
-            print('given file')
             # Initialize from file in csv format
             q = pd.read_csv(csv_file, index_col=None)
             self.matrix = np.asarray(q.values)
             self.validated = False
         else:
-            print('no input')
             # Default instance (2x2 identity matrix)
             default = np.identity(2)
             self.matrix = np.asarray(default)
@@ -570,7 +571,14 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
         y = new_values2
         return x, y
 
-    # calculate the pearson correlation
+    def fit(self, data, method='pearson'):
+        """
+        Calculate correlation according to desired measure
+
+        """
+        rho = data.corr(method=method).values
+        self.matrix = rho
+
     def pearsonr(self, data):
         # make input1 and input2 uniform
         # x, y = self.make_uniform(dates1, values1, dates2, values2)
@@ -627,179 +635,92 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
 
 
 class FactorCorrelationMatrix(CorrelationMatrix):
-    """  The EmpiricalCorrelationMatrix object stores the full empirical correlation Matrix.
+    """  The FactorCorrelationMatrix class fits a variety of factor models
 
-    It stores matrices estimated using any of the standard correlation metrics
-    (Pearson, Kendal, Tau)
-
-    The EmpiricalCorrelationMatrix object is different from the correlationMatrixSet in that it stores detailed event time
-    of observations and the correlation densities in addition to the correlation probabilities
-
-    An EmpiricalCorrelationMatrix can be converted into a correlationMatrixSet by sampling on a temporal grid (but not
-    vice-versa)
+    It stores the derived
 
 
     """
 
-    def __init__(self, dimension=2, values=None, observation_times=None, json_file=None,
-                 csv_file=None):
-        CorrelationMatrix.__init__(self)
-        """ Create a new probability matrix. Different options for initialization are:
+    def __init__(self, **kwargs):
+        super().__init__(values=None, type=None, json_file=None, csv_file=None, **kwargs)
 
-        * providing values as a 3D numpy array of signature (S, S, T) and observation times as a list or numpy array of length T
-        * loading from a csv file
-        * loading from a json file
+        """ Create a new correlations matrix from sampled data
 
-        Without data, a default identity matrix is generated with user specified dimension
 
-        :param values: initialization values
-        :param dimension: matrix dimensionality (default is 2)
-        :param observation_times: List with the timesteps (support) of correlation observations
-        :param json_file: a json file containing correlation matrix data
-        :param csv_file: a csv file containing correlation matrix data
+        """
+        # self.samples = kwargs.get('samples')
 
-        :type values: 3D numpy array
-        :type dimension: int
-        :type observations: int
-        :type json_file: str
-        :type csv_file: str
-
-        :returns: returns a EmpiricalCorrelationMatrix object
-        :rtype: object
-
-        .. note:: The initialization in itself does not validate if the provided values form indeed a correlation matrix set
-
-        :Example:
-
-        Instantiate a correlation probability matrix
-
-        .. code-block:: python
+    def fit(self, data, method='UniformSingleFactor'):
+        """
+        Estimate a single factor model with uniform loadings
+        - The single factor is constructed as the average of all realizations
+        - Uniform loadings imply all return realizations are of the same variable r
 
         """
 
-        self.values = values
-        self.observation_times = observation_times
+        # Response (dependent) variables
+        Y = data.values
+        # Control that the response variables (r) have the right correlation
+        # rho = data.corr(method='pearson').values
+        # print(rho)
 
-        return
+        # Compute the row average (Market factor)
+        F = data.mean(axis=1).values
+        # print(np.std(F0))
 
-    def get_data(self, data_url):
-        r = requests.get(data_url)
-        return r.json()
+        # print(np.std(F1))
+        # Normalize the market factor to unit variance
+        # Replicate the market factor for the multiple regression
+        # X = np.tile(F1, (Y.shape[1], 1)).transpose()
+        X = scale(F, with_mean=False, with_std=True)
+        # np.reshape(X, (100, 1))
+        # np.reshape(X, (-1, 1))
 
-    def make_uniform(self, dates1, values1, dates2, values2):
-        # make the two timeseries arrays uniform (select common observation dates)
-        # find common dates
-        # return values on common dates
-        common_dates = list(set(dates1).intersection(dates2))
+        print(Y.shape)
+        print(X.shape)
 
-        new_values1 = []
-        new_values2 = []
-        for date in common_dates:
-            i1 = dates1.index(date)
-            i2 = dates2.index(date)
-            new_values1.append(values1[i1])
-            new_values2.append(values2[i2])
+        corrs = []
+        for i in range(Y.shape[1]):
+            rho, p = sp.pearsonr(X, Y[:, i])
+            corrs.append(rho)
+        print(np.mean(corrs)**2)
 
-        x = new_values1
-        y = new_values2
-        return x, y
 
-    # inputs to the library are assumed to be
 
-    # calculate the pearson correlation
-    def pearsonr(self, dates1, values1, dates2, values2):
-        # make input1 and input2 uniform
-        x, y = self.make_uniform(dates1, values1, dates2, values2)
-        rho, p = sp.pearsonr(x, y)
-        return rho, p
 
-    # calculate the kendall correlation
-    def kendallr(self, dates1, values1, dates2, values2):
-        # make input1 and input2 uniform
-        x, y = self.make_uniform(dates1, values1, dates2, values2)
-        # print(x, y)
-        rho, p = sp.kendalltau(x, y)
-        return rho, p
+        # print(data.describe())
+        # print(len(data.index))
+        # rho, p = sp.pearsonr(data['S4'], F)
 
-    # calculate the spearman correlation
-    def spearmanr(self, dates1, values1, dates2, values2):
-        # make input1 and input2 uniform
-        x, y = self.make_uniform(dates1, values1, dates2, values2)
-        rho, p = sp.spearmanr(x, y)
-        return rho, p
+        # for i in range(20):
+        #         rho, p = sp.pearsonr(Y[:, i], X[:, i])
+        #         print(rho)
 
-    # the correlation collection (ADD OTHER functions)
-    def calculate_correlation(self, model_name, input1_url, input2_url):
-        # python models evaluated directly
-        # c++ models evaluated via CGI requests
+        # Control that the response variables (r) have the right correlation
+        # for i in range(20):
+        #     for j in range(20):
+        #         rho, p = sp.pearsonr(Y[:, i], Y[:, j])
+        #         print(rho)
 
-        # print(model_name)
-        # Exctract timeseries data for calculation
+        if method == 'UniformSingleFactor':
+            # res = smf.ols(formula='r ~ F', data=data).fit()
+            # estimator = LinearRegression(fit_intercept=False)
+            # results = estimator.fit(X, Y)
+            # print(dir(results))
+            # print(results.coef_)
+            # b = np.linalg.lstsq(X[:, 0], Y[:,0])
 
-        raw_data1 = get_data(input1_url)
-        raw_data2 = get_data(input2_url)
+            # X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])
+            # # y = 1 * x_0 + 2 * x_1 + 3
+            # y = np.dot(X, np.array([1, 2])) + 3
+            reg = LinearRegression().fit(X, Y)
+            print(reg.coef_)
 
-        json_string1 = raw_data1['_items'][0]['json_dump']
-        Data1 = json.loads(json_string1)
-        dates1 = Data1['Dates']
-        values1 = Data1['Values']
-        # print(dates1, values1)
+            # estimator = ols._MultivariateOLS(X, Y)
+            # results = estimator.fit()
+            # print(results)
+            # plt.plot(b)
+            # plt.show()
 
-        json_string2 = raw_data2['_items'][0]['json_dump']
-        Data2 = json.loads(json_string2)
-        dates2 = Data2['Dates']
-        values2 = Data2['Values']
-
-        if model_name == 'Pearson_Correlation':
-            rho, p = self.pearsonr(dates1, values1, dates2, values2)
-        elif model_name == 'Kendall_Correlation':
-            rho, p = self.kendallr(dates1, values1, dates2, values2)
-        elif model_name == 'Spearman_Correlation':
-            rho, p = self.spearmanr(dates1, values1, dates2, values2)
-        return {'rho': rho, 'p': p}
-
-    def hierarchical(self):
-        ########## Fit Hierachical Factor Model ##########
-        # we need separate the residuals, if the residuals are correlated with each other, we won't make the garphs.
-        # Basically, in the kiwi paper, he express the residuals only have one sector, but we have five sectors
-        # Firstly we do the sector model, sector indics are just the averages of companies within each sector
-        #
-        # Input:
-        #   CSV file of scaled log-return data
-        #
-        # Output:
-        #   Linear factor model and residuals
-        # rm(list=ls())
-        # library(corrplot)
-        # # Read closing data from csv file
-        # setwd("C:\\Users\\lixua\\Desktop\\version1.4")
-        # # setwd('/home/philippos/Desktop/R_Development/version1.2.1')
-        # source('SectorsNCompanies.R')
-        # # setwd('/home/philippos/Desktop/R_Development/Current')
-        # df < - read.csv('cleaned_returns_data.csv', sep=",")
-        #
-        # ### Calculate the Sector Loadings on the Index and the Sector Residuals ###
-        #
-        # sector_fit < - lm(data.matrix(df[, 51:55])
-        # ~ Index, data = df)
-        # s_load < - sector_fit$coefficients
-        # s_res < - data.frame(sector_fit$residuals)
-        # s_corr < - cor(s_res)
-        # corrplot(s_corr)
-        #
-        # ### Calculate company loadings on the Index and the company Residuals ###
-        #
-        # df2 < - data.frame(df[, 1:50], s_res, df["Index"])
-        #
-        # company_fit < - lm(data.matrix(df2[, 1:50])
-        # ~ Index + S_FINA + S_HLTH + S_TECH + S_OILG + S_CONS, data = df2)
-        # c_load < - company_fit$coefficients
-        # c_res < - data.frame(company_fit$residuals)
-        # c_corr < - cor(c_res)
-        # corrplot(c_corr, tl.cex = 0.5)
-        #
-        #
-        # ### Store Sector and Company Residuales ###
-        # write.table(s_res, file="sector_residuals.csv", sep=",", row.names = FALSE, col.names = TRUE)
-        # write.table(c_res, file="company_residuals.csv", sep=",", row.names = FALSE, col.names = TRUE)
-        pass
+        # self.matrix = rho

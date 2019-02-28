@@ -9,7 +9,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software distributed under
 # the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-# either express or implied. See the License for the specific language governing permissions and
+# either express or implied. See the License for the specif ic language governing permissions and
 # limitations under the License.
 
 
@@ -57,15 +57,22 @@ elif example == 3:
 
 # Step
 # Estimate the empirical correlation matrix using the Pearson measure
-print("> Step 3: Estimate the empirical correlation matrix using the Pearson measure")
+print("> Step 3a: Estimate the empirical correlation matrix using the Pearson measure")
 myMatrix = cm.EmpiricalCorrelationMatrix()
-print(myMatrix.validated)
+# print(myMatrix.validated)
 # print(type(myMatrix))
 # myMatrix.print()
-myMatrix.pearsonr(data)
+# myMatrix.pearsonr(data)
+myMatrix.fit(data, method='pearson')
 myMatrix.print()
-myMatrix.validate()
-print(myMatrix.validated)
+print("> Step 3b: Estimate the empirical correlation matrix using the Kendall measure")
+myMatrix.fit(data, method='kendall')
+myMatrix.print()
+print("> Step 3c: Estimate the empirical correlation matrix using the Spearman measure")
+myMatrix.fit(data, method='spearman')
+myMatrix.print()
+# myMatrix.validate()
+# print(myMatrix.validated)
 # myEstimator = aj.AalenJohansenEstimator(states=myState)
 # labels = {'Timestamp': 'Time', 'From_State': 'From', 'To_State': 'To', 'ID': 'ID'}
 # etm, times = myEstimator.fit(sorted_data, labels=labels)

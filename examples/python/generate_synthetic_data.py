@@ -42,11 +42,11 @@ if dataset == 1:
     # This dataset creates the simplest possibe (uniform single factor) correlation matrix
     # Correlation Matrix definition
     # n: number of entities to generate
-    myMatrix = cm.CorrelationMatrix(type='UniformSingleFactor', rho=0.2, n=10)
-    myMatrix.print()
+    myMatrix = cm.CorrelationMatrix(type='UniformSingleFactor', rho=0.3, n=10)
+    # myMatrix.print()
     # Generate multivariate normal data with that correlation matrix (a pandas frame)
     # s: number of samples per entity
-    data = dataset_generators.multivariate_normal(myMatrix, sample=1000)
+    data = dataset_generators.multivariate_normal(myMatrix, sample=100)
     data.to_csv(dataset_path + 'synthetic_data1.csv', index=False)
 
 elif dataset == 2:
