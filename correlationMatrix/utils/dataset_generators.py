@@ -12,11 +12,15 @@
 # either express or implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
-# library to create synthetic correlated datasets
-#
 
 import numpy as np
 import pandas as pd
+
+"""
+This module generates correlated timeseries data (in pandas dataframe format)
+Useful for controlled experiments where the generative process in fully known
+
+"""
 
 
 def multivariate_normal(correlationmatrix, sample):

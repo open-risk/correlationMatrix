@@ -13,50 +13,57 @@
 # limitations under the License.
 
 import matplotlib as mpl
-import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.cluster.hierarchy import dendrogram, linkage
 
 import correlationMatrix as cm
 from correlationMatrix import source_path
+from datasets import Vandermonde
 
 """
-Example workflows using correlationMatrix to generate visualizations of migration phenomena
+Example workflows using correlationMatrix and matplotlib to generate visualizations of migration phenomena
 
 """
 
 dataset_path = source_path + "datasets/"
-example = 6
-
-# TODO visualization when states are not sampled (infrequent)
+example = 2
 
 if example == 1:
     #
-    #  Colorbar
+    #  Matplotlib Heatmap Visualization
     #
-    df = pd.read_csv(dataset_path + 'synthetic_data4.csv')
+    myMatrix = cm.CorrelationMatrix(values=Vandermonde)
+    myMatrix.print()
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
-    cmap = cm.get_cmap('jet', 30)
-    cax = ax1.imshow(df.corr(), interpolation="nearest", cmap=cmap)
+    cmap = mpl.cm.get_cmap('jet', 30)
+    cax = ax1.imshow(myMatrix.matrix, interpolation="nearest", cmap=cmap)
     ax1.grid(True)
-    plt.title('Abalone Feature Correlation')
-    labels = ['Sex', 'Length', 'Diam', 'Height', 'Whole', 'Shucked', 'Viscera', 'Shell', 'Rings', ]
-    ax1.set_xticklabels(labels, fontsize=6)
-    ax1.set_yticklabels(labels, fontsize=6)
-    # Add colorbar, make sure to specify tick locations to match desired ticklabels
-    fig.colorbar(cax, ticks=[.75, .8, .85, .90, .95, 1])
+    plt.title('Vandermonde Correlation')
+    fig.colorbar(cax, ticks=[i * 0.1 for i in range(0, 11)])
     plt.show()
 
 elif example == 2:
     #
-    #  Seaborn Heatmap
+    #  Scipy Dendrogram Visualization
     #
-    import seaborn as sns
+    G = cm.generate_random_matrix(20)
+    Z = linkage(G.distance(), method='single', metric='euclidean', optimal_ordering=False)
 
-    df = pd.read_csv(dataset_path + 'synthetic_data4.csv')
-    f, ax = plt.subplots(figsize=(10, 8))
-    corr = df.corr()
-    sns.heatmap(corr, mask=np.zeros_like(corr, dtype=np.bool), cmap=sns.diverging_palette(220, 10, as_cmap=True),
-                square=True, ax=ax)
+    plt.title('Dependency Dendrogram')
+    plt.xlabel('Entity')
+    plt.ylabel('Correlation Distance')
+    dendrogram(
+        Z,
+        truncate_mode='lastp',  # show only the last p merged clusters
+        # p=12,  # show only the last p merged clusters
+        show_leaf_counts=False,  # otherwise numbers in brackets are counts
+        leaf_rotation=90.,
+        leaf_font_size=12.,
+        show_contracted=True,  # to get a distribution impression in truncated branches
+    )
+    plt.show()
+
+

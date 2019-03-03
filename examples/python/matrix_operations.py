@@ -68,7 +68,15 @@ A.to_json("TestMatrix.json")
 print("> Derive the inverse correlation matrix")
 print(A.inverse())
 
+# Obtain the matrix distance
+print("> Derive the distance implied by the correlation matrix")
+print(A.distance())
 
 print("> Check that the product of the inverse and correlation matrix is the identify matrix")
 print(np.matmul(A.matrix, A.inverse()))
+
+# Generate a random matrix
+print("> Generate a random correlation matrix")
+G = cm.generate_random_matrix(100)
+print(G.validate())
 

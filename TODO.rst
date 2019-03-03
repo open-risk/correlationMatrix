@@ -12,7 +12,6 @@ Statistical
 
 - Further validation and characterisation of correlation matrices
 - Fixing common problems encountered by empirically estimated correlation matrices
-- Generate random matrices subject to constraints
 - Confidence intervals
 - Additional correlation models
 

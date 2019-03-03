@@ -14,111 +14,84 @@
 
 
 """
-Example workflows using correlationMatrix to estimate a correlation matrix from data in cohort format
+Example workflow using correlationMatrix to estimate a correlation matrix
+from equity data belonging to different sectors (Credit Metrics model)
+
+Data are assumed already available locally on disk
+Use utils/fetch_equity_data.py to fetch Yahoo Finance equity data
 
 """
 
-
 import pandas as pd
-
 import correlationMatrix as cm
+from correlationMatrix.utils.preprocessing import csv_files_to_frame, construct_log_returns, \
+normalize_log_returns
 from correlationMatrix import source_path
+from datasets.SectorsNCompanies import yahoo_names as entity_list
+
+input_dataset_path = source_path + "datasets/yahoo_equity_data/"
+output_dataset_path = source_path + "datasets/"
+
+Step = 4
+
+if Step == 1:
+    # Concatenate input data into a single dataframe and save to disk
+    print("> Concatenate input data into a single dataframe and save to disk")
+    filename = output_dataset_path + 'yahoo_merged_data.csv'
+    csv_files_to_frame(entity_list, input_dataset_path, filename)
+elif Step == 2:
+    print("> Calculate log returns and save to disk")
+    in_filename = output_dataset_path + 'yahoo_merged_data.csv'
+    out_filename = output_dataset_path + 'yahoo_log_returns.csv'
+    construct_log_returns(in_filename, out_filename)
+elif Step == 3:
+    print("> Calculate normalized log returns and save to disk")
+    in_filename = output_dataset_path + 'yahoo_log_returns.csv'
+    out_filename = output_dataset_path + 'yahoo_scaled_returns.csv'
+    normalize_log_returns(in_filename, out_filename)
+elif Step == 4:
+    print("> Calculate sectoral factor model")
+    in_filename = output_dataset_path + 'yahoo_scaled_returns.csv'
+    myMatrix = cm.FactorCorrelationMatrix()
+    data = pd.read_csv(in_filename)
+    myMatrix.fit(data, method='SectorModel')
 
 
-dataset_path = source_path + "datasets/"
 
-# Select the example to run
-# 1-> S&P Style Credit Rating Migration Matrix
-# 2-> IFRS 9 Style Migration Matrix
-# 3-> Simplest Absorbing Case for validation
 
-example = 2
+"""
 
-if example == 1:
-    # Example: S&P Style Credit Rating Migration Matrix
+data = pd.read_csv(dataset_path + 'sector_data.csv')
 
-    # S&P Ratings State Space
-    definition = [('0', "AAA"), ('1', "AA"), ('2', "A"), ('3', "BBB"),
-                   ('4', "BB"), ('5', "B"), ('6', "CCC"), ('7', "D")]
+# S&P Ratings State Space
+definition = [('0', "AAA"), ('1', "AA"), ('2', "A"), ('3', "BBB"),
+              ('4', "BB"), ('5', "B"), ('6', "CCC"), ('7', "D")]
 
-    myState = cm.StateSpace(definition)
-    print("> Describe state space")
-    myState.describe()
-    print("> List of states")
-    print(myState.get_states())
-    print("> List of state labels")
-    print(myState.get_state_labels())
+myState = cm.StateSpace(definition)
+print("> Describe state space")
+myState.describe()
+print("> List of states")
+print(myState.get_states())
+print("> List of state labels")
+print(myState.get_state_labels())
 
-    print("> Load and validate dataset")
-    data = pd.read_csv(dataset_path + 'synthetic_data4.csv', dtype={'State': str})
-    sorted_data = data.sort_values(['ID', 'Timestep'], ascending=[True, True])
-    print(myState.validate_dataset(dataset=sorted_data))
+print("> Load and validate dataset")
+data = pd.read_csv(dataset_path + 'synthetic_data4.csv', dtype={'State': str})
+sorted_data = data.sort_values(['ID', 'Timestep'], ascending=[True, True])
+print(myState.validate_dataset(dataset=sorted_data))
 
-    # compute confidence interval using goodman method at 95% confidence level
-    myEstimator = es.CohortEstimator(states=myState, ci={'method': 'goodman', 'alpha': 0.05})
-    result = myEstimator.fit(sorted_data)
+# compute confidence interval using goodman method at 95% confidence level
+myEstimator = es.CohortEstimator(states=myState, ci={'method': 'goodman', 'alpha': 0.05})
+result = myEstimator.fit(sorted_data)
 
-    # Print confidence intervals
-    print("> Compute confidence interval using goodman method at 95% confidence level")
-    myEstimator.summary()
+# Print confidence intervals
+print("> Compute confidence interval using goodman method at 95% confidence level")
+myEstimator.summary()
 
-    # Print the estimated results
-    myMatrixSet = cm.CorrelationMatrixSet(values=result, temporal_type='Incremental')
-    # print(myMatrixSet.temporal_type)
-    print("> Print Estimated Matrix Set")
-    myMatrixSet.print_matrix()
+# Print the estimated results
+myMatrixSet = cm.CorrelationMatrixSet(values=result, temporal_type='Incremental')
+# print(myMatrixSet.temporal_type)
+print("> Print Estimated Matrix Set")
+myMatrixSet.print_matrix()
 
-elif example == 2:
-    # Example: IFRS 9 Style Migration Matrix
-    # Load historical data into pandas frame
-    # Format:
-    # discrete time grid (already arranged in cohorts)
-
-    # Step 1
-    # Load the data set into a pandas frame
-    # Make sure state is read as a string and not as integer
-    # Fifth synthetic data example: IFRS 9 Migration Matrix
-    print(">>> Step 1")
-    data = pd.read_csv(dataset_path + 'synthetic_data5.csv', dtype={'State': str})
-    sorted_data = data.sort_values(['ID', 'Timestep'], ascending=[True, True])
-    # Data is in pandas frame, all methods are available
-    print(sorted_data.describe())
-
-    # Step 2
-    # Describe and validate the State Space against the data
-    print(">>> Step 2")
-    definition = [('0', "Stage 1"), ('1', "Stage 2"), ('2', "Stage 3")]
-    myState = cm.StateSpace(definition)
-    myState.describe()
-    print(myState.validate_dataset(dataset=sorted_data))
-
-    # Step 3
-    # Estimate matrices using method of choice
-    # compute confidence interval using goodman method at 95% confidence level
-    print(">>> Step 3")
-    myEstimator = es.CohortEstimator(states=myState, ci={'method': 'goodman', 'alpha': 0.05})
-    # myMatrix = matrix.CohortEstimator(states=myState)
-    result = myEstimator.fit(sorted_data)
-    myEstimator.summary()
-
-    # Step 4
-    # Review numerical results
-    print(">>> Step 4")
-    myMatrixSet = cm.CorrelationMatrixSet(values=result, temporal_type='Incremental')
-    print(myMatrixSet.temporal_type)
-    myMatrixSet.print_matrix()
-
-elif example == 3:
-    # Example: Simplest Absorbing Case for validation
-    data = pd.read_csv(dataset_path + 'synthetic_data6.csv', dtype={'State': str})
-    sorted_data = data.sort_values(['ID', 'Timestep'], ascending=[True, True])
-    myState = cm.StateSpace()
-    myState.generic(2)
-    print(myState.validate_dataset(dataset=sorted_data))
-    myEstimator = es.CohortEstimator(states=myState, ci={'method': 'goodman', 'alpha': 0.05})
-    result = myEstimator.fit(sorted_data)
-    myMatrixSet = cm.CorrelationMatrixSet(values=result, temporal_type='Incremental')
-
-    myEstimator.print(select='Counts', period=0)
-    myEstimator.print(select='Frequencies', period=18)
-
+"""

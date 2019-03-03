@@ -12,7 +12,7 @@
 # either express or implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" This module provides the key correlation matrix objects
+""" This module provides the key correlation matrix classes
 
 * correlationMatrix_ implements the functionality of single period correlation matrix
 * correlationMatrixSet_ provides a container for a multiperiod correlation matrix collection
@@ -41,6 +41,21 @@ import matplotlib.pyplot as plt
 
 import correlationMatrix as cm
 from correlationMatrix.settings import EIGENVALUE_TOLERANCE
+
+
+def generate_random_matrix(n=10):
+    """
+        Produce a random matrix for testing purposes
+        The simple method currently implemented uses an independent factor model with random loadings
+        Y = b F + e
+    """
+
+    b = np.random.uniform(low=-1.0, high=1.0, size=n)
+    C = np.outer(b, b)
+    for i in range(n):
+        C[i, i] = 1
+    myMatrix = cm.CorrelationMatrix(values=C)
+    return myMatrix
 
 
 class CorrelationMatrix:
@@ -96,7 +111,6 @@ class CorrelationMatrix:
 
         if values is not None:
             # Initialize with given values
-            print('given values', values)
             self.matrix = np.asarray(values)
             self.validated = False
         elif type is not None:
@@ -243,34 +257,29 @@ class CorrelationMatrix:
             else:
                 print("Invalid Correlation Matrix")
 
-    def characterize(self):
-        """ Analyse or classify a correlation matrix according to its properties
+    def distance(self):
+        """ Compute Euclidean distances implied by a correlation matrix (assuming it is a valid matrix)
 
-        * diagonal dominance
 
-        .. Todo:: Further characterization
+        :Example:
+
+        G = A.distance()
         """
-
-        outcome_messages = []
-        if self.validated is True:
-            matrix = self.matrix
-            matrix_size = matrix.shape[0]
-            dominance = True
-            for i in range(matrix_size):
-                if matrix[i, i] < 0.5:
-                    dominance = False
-            if dominance:
-                outcome_messages.append("Diagonally Dominant")
-            else:
-                outcome_messages.append("Not Diagonally Dominant")
+        if self.validated:
+            distance = np.sqrt(2.0 * (1.0 - self.matrix))
+            return distance
         else:
-            outcome_messages.append("Not a validated matrix. Use matrix.validate()")
-        return outcome_messages
+            self.validate()
+            if self.validated:
+                distance = np.sqrt(2.0 * (1.0 - self.matrix))
+                return distance
+            else:
+                print("Invalid Correlation Matrix")
 
-    def generate_random_matrix(self):
+    def characterize(self):
         """
+        TODO Analyse or classify a correlation matrix according to its eigevalue spectrum properties
 
-        .. Todo:: Implement matrix generation subject to various constraints
         """
         pass
 
@@ -295,13 +304,18 @@ class CorrelationMatrix:
 
     def decompose(self, method):
         """
-        Create a decomposition of the correlation matrix according to the selected method
+        TODO Create a decomposition of the correlation matrix according to the selected method
         :param method:
         :return:
         """
         pass
 
     def stress(self, scenario, method):
+        """
+        TODO Create a stressed correlation matrix according to the selected method
+        :param method:
+        :return:
+        """
         pass
 
     @property
@@ -310,231 +324,12 @@ class CorrelationMatrix:
 
 
 class CorrelationMatrixSet(object):
-    """  The _`correlationMatrixSet` object stores a family of correlationMatrix_ objects as a time ordered list. Besides
+    """ TODO The _`correlationMatrixSet` object stores a family of correlationMatrix_ objects as a time ordered list. Besides
     storage it allows a variety of simultaneous operations on the collection of matrices
 
 
     """
-
-    def __init__(self, dimension=2, values=None, periods=1, temporal_type=None, method=None, json_file=None,
-                 csv_file=None):
-        """ Create a new matrix set. Different options for initialization are:
-
-        * providing values as a list of list
-        * providing values as a numpy array
-        * loading from a csv file
-        * loading from a json file
-
-        Without data, a default identity matrix is generated with user specified dimension
-
-        :param values: initialization values
-        :param dimension: matrix dimensionality (default is 2)
-        :param method: matrix dimensionality (default is 2)
-        :param periods: List with the timesteps of matrix observations
-        :param temporal_type: matrix dimensionality (default is 2)
-
-        * Incremental: Each period matrix reflects correlations for that period
-        * Cumulative: Each period matrix reflects cumulative correlations from start to that period
-
-        :param json_file: a json file containing correlation matrix data
-        :param csv_file: a csv file containing correlation matrix data
-
-        :type values: list of lists or numpy array
-        :type dimension: int
-        :type temporal_type: str
-        :type json_file: str
-        :type csv_file: str
-
-        :returns: returns a TranstionMatrix object
-        :rtype: object
-
-        .. note:: The initialization in itself does not validate if the provided values form indeed a correlation matrix set
-
-        :Example:
-
-        Instantiate a correlation matrix set directly using a list of matrices
-
-        .. code-block:: python
-
-            C_Vals = [[[0.75, 0.25], [0.0, 1.0]],  [[0.75, 0.25], [0.0, 1.0]]]
-
-            C_Set = cm.correlationMatrixSet(values=C_Vals, temporal_type='Incremental')
-
-        """
-
-        if values is not None:
-            # Copy a single matrix to all periods
-            if method is 'Copy':
-                val_set = []
-                for k in range(periods):
-                    a = cm.CorrelationMatrix(values)
-                    val_set.append(a)
-                self.entries = val_set
-                self.temporal_type = 'Incremental'
-                self.periods = list(range(periods))
-                self.dimension = val_set[0].shape[0]
-            # Create a multi-period matrix assuming a Markov Chain
-            elif method is 'Power':
-                val_set = []
-                a = cm.CorrelationMatrix(values)
-                val_set.append(a)
-                an = a
-                for k in range(periods - 1):
-                    an = an * a
-                    an = cm.CorrelationMatrix(an)
-                    val_set.append(an)
-                self.entries = val_set
-                self.temporal_type = 'Cumulative'
-                self.periods = list(range(periods))
-                self.dimension = val_set[0].shape[0]
-            # Use provided matrices as-is
-            elif method is None:
-                val_set = []
-                for entry in values:
-                    a = cm.CorrelationMatrix(entry)
-                    val_set.append(a)
-                self.entries = val_set
-                self.temporal_type = temporal_type
-                self.periods = list(range(periods))
-                self.dimension = val_set[0].shape[0]
-        elif values is None and csv_file is not None:
-            # Initialize from file in csv format
-            # First row is meta data labels (From States, To States, Periods, Tenor List)
-            # Second row is meta data values (comma separated)
-            # Subsequent rows are Periods x Matrices in sequence
-            if not os.path.isfile(csv_file):
-                print("Input File Does not Exist")
-                exit()
-            f = open(csv_file)
-            header_dict = f.readline()
-            header_data = f.readline().split(',')
-            val_set = []
-            from_states = int(header_data.pop(0))
-            to_states = int(header_data.pop(0))
-            periods = int(header_data.pop(0))
-            tenors = [int(x) for x in header_data]
-            q = pd.read_csv(f, header=None, usecols=range(to_states))
-            for k in range(periods):
-                raw = q.iloc[k * from_states:(k + 1) * from_states]
-                a = cm.CorrelationMatrix(raw.as_matrix())
-                val_set.append(a)
-            self.entries = val_set
-            self.temporal_type = temporal_type
-            self.periods = tenors
-            self.dimension = val_set[0].shape[0]
-            f.close()
-        elif values is None and json_file is not None:
-            # Initialize from file in json format
-            if not os.path.isfile(json_file):
-                print("Input File Does not Exist")
-                exit()
-            val_set = []
-            q = json.load(open(json_file))
-            periods = len(q)
-            for k in range(periods):
-                a = cm.CorrelationMatrix(q[k])
-                val_set.append(a)
-            self.entries = val_set
-            self.temporal_type = temporal_type
-            self.periods = list(range(periods))
-            self.dimension = val_set[0].shape[0]
-        else:
-            # Default instance (2x2 identity matrix)
-            # default = np.identity(dimension)
-            val_set = []
-            for k in range(periods):
-                a = cm.CorrelationMatrix(dimension=dimension)
-                val_set.append(a)
-            self.entries = val_set
-            if temporal_type is not None:
-                self.temporal_type = temporal_type
-            else:
-                self.temporal_type = 'Incremental'
-            self.periods = list(range(periods))
-            self.dimension = 2
-
-        self.validated = False
-        return
-
-    def __mul__(self, scale):
-        """ Scale all entries of the set by a factor
-
-
-        """
-        scaled = self
-        val_set = []
-        for entry in self.entries:
-            a = entry * scale
-            val_set.append(a)
-        scaled.entries = val_set
-        return scaled
-
-    def validate(self):
-        """ Validate correlation matrix set (validating individual entries)
-
-        :returns: List of tuples with validation messages
-        """
-        validation_messages = []
-        validation_status = []
-        for entry in self.entries:
-            validation_messages.append(entry.validate())
-            validation_status.append(entry.validated)
-        if all(validation_status):
-            self.validated = True
-            return self.validated
-        else:
-            self.validated = False
-            return validation_messages
-
-    def remove(self, state, method):
-        """ remove a correlation matrix state and distribute its probability to other states according
-        to prescribed method
-
-        """
-        updated = self
-        val_set = []
-        for entry in self.entries:
-            a = entry.remove(state, method)
-            val_set.append(a)
-        updated.entries = val_set
-        return updated
-
-    def print_matrix(self, format_type='Standard', accuracy=2):
-        """ Pretty Print a correlation Matrix Set
-
-        """
-        k = 0
-        for entry in self.entries:
-            print("Entry: ", k)
-            entry.print(format_type=format_type, accuracy=accuracy)
-            k += 1
-
-    def to_json(self, file=None, accuracy=5):
-        hold = []
-        for k in range(len(self.entries)):
-            entry = np.around(self.entries[k], accuracy)
-            hold.append(entry.tolist())
-        serialized = json.dumps(hold, indent=2, separators=(',', ': '))
-        if file is not None:
-            file = open(file, 'w')
-            file.write(serialized)
-            file.close()
-
-        return serialized
-
-    def to_csv(self, file):
-        pass
-
-    def to_html(self, file=None):
-        table_set = ''
-        for table in self.entries:
-            html_table = pd.DataFrame(table).to_html()
-            table_set += html_table
-        if file is not None:
-            file = open(file, 'w')
-            file.write(table_set)
-            file.close()
-        return table_set
+    pass
 
 
 class EmpiricalCorrelationMatrix(CorrelationMatrix):
@@ -591,7 +386,6 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
         # x, y = self.make_uniform(dates1, values1, dates2, values2)
         # rho, p = sp.pearsonr(x, y)
         # return rho, p
-        print('Inside', type(self))
         rho = data.corr(method='pearson').values
         self.matrix = rho
 
@@ -618,8 +412,8 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
         # print(model_name)
         # Exctract timeseries data for calculation
 
-        raw_data1 = get_data(input1_url)
-        raw_data2 = get_data(input2_url)
+        raw_data1 = self.get_data(input1_url)
+        raw_data2 = self.get_data(input2_url)
 
         json_string1 = raw_data1['_items'][0]['json_dump']
         Data1 = json.loads(json_string1)
@@ -651,8 +445,7 @@ class FactorCorrelationMatrix(CorrelationMatrix):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(values=None, type=None, json_file=None, csv_file=None, **kwargs)
-
+        super().__init__(**kwargs)
         """ Create a new correlations matrix from sampled data
 
 
@@ -778,8 +571,8 @@ class FactorCorrelationMatrix(CorrelationMatrix):
 
             """
 
-            #TODO stack the individual stock values when the model ask for single loading
-            #TODO grouped stock loadings
+            # TODO stack the individual stock values when the model ask for single loading
+            # TODO grouped stock loadings
 
             # Find all the loadings of entities to the market factor
             a = X
@@ -822,7 +615,7 @@ class FactorCorrelationMatrix(CorrelationMatrix):
 
             m = 3
             n = raw_data.shape[1]
-            a = raw_data[:, n-m:n]
+            a = raw_data[:, n - m:n]
             print(a.shape)
 
             # b = raw_data[:, 5]
@@ -835,8 +628,14 @@ class FactorCorrelationMatrix(CorrelationMatrix):
             # a = X
             # n = len(a)
             # a.shape = (n, 1)
-            for i in range(n-m):
+            for i in range(n - m):
                 b = raw_data[:, i]
                 p, res, rnk, s = lstsq(a, b)
                 print(p, res, rnk, s)
 
+        elif method == 'SectorModel':
+            raw_data = data.values
+            print('Building Sector Model')
+
+        else:
+            print('Invalid Mode')

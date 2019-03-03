@@ -1,124 +1,44 @@
-# from yahoo_finance import Share
-# yahoo = Share('YHOO')
-# stock_data =  yahoo.get_historical('2014-04-25', '2014-04-29')
-# print(stock_data)
+# encoding: utf-8
 
-# import urllib.request
-# import time
+# (c) 2019 Open Risk, all rights reserved
 #
-# stockstoPull = 'AMD', 'BAC', 'MSFT', 'TXN', 'GOOG'
+# correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
+# in the source distribution of correlationMatrix. This is notwithstanding any licenses of
+# third-party software included in this distribution. You may not use this file except in
+# compliance with the License.
 #
-# def pullData(stock):
-#     fileLine = stock + '.txt'
-#     urltovisit = 'http://chartapi.finance.yahoo.com/instrument/1.0/'+stock+'/chartdata;type=quote;range=1y/csv'
-#     with urllib.request.urlopen(urltovisit) as f:
-#         sourceCode = f.read().decode('utf-8')
-#     splitSource = sourceCode.split('\n')
-#
-#     for eachLine in splitSource:
-#         splitLine = eachLine.split(',') # <---(here ',' instead of '.')
-#         if len(splitLine) == 6: # <----( here, 6 instead of 5 )
-#             if 'values' not in eachLine:
-#                 saveFile = open(fileLine,'a')
-#                 linetoWrite = eachLine+'\n'
-#                 saveFile.write(linetoWrite)
-#
-#     print('Pulled', stock)
-#     print('...')
-#     time.sleep(.5)
-#
-# if __name__=="__main__":
-#     for eachStock in stockstoPull:
-#         pullData(eachStock)
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions and
+# limitations under the License.
 
 """
-Select Equities from Yahoo! Finance
+    Script for downloading Yahoo Finance data
+    The symbols are imported from the datasets/SectorsNCompanies dictionary
 
-5 sectors, 10 companies for each
+    Timeseries data are stored in individual files within a directory
+
 """
 
-vnames = []
-
-""" Financial Index """
-
-symbols = ["AXP",  # American Express
-           "JPM",  # JP Morgan Chase
-           "WFC",  # Wells Fargo
-           "BAC",  # Bank of America Corp
-           "C",  # Citigroup
-           "USB",  # US Bancorp
-           "GS",  # Goldman Sachs Group
-           "MS",  # Morgan Stanley
-           "ALL",  # Allstate Corporation
-         "AIG"]  # American International Group
-
-vnames.append(symbols)
-
-
-""" Health Care """
-
-symbols = ["UNH",  # Unitedhealth Group Inc
-             "CVS",  # CVS Health
-             "CAH",  # Cardinal Health
-             "ESRX",  # Express Scripts Holding Co.
-             "AET",  # Aetna Inc
-             "CI",  # Cigna Corporation
-             "HUM",  # Humana Inc
-             "LH",  # Lab Corp of America Hldgs
-             "DGX",  # Quest Diagnostics
-             "UHS"]  # Universal Health Services B
-
-vnames.append(symbols)
-
-""" Technology """
-
-symbols = ["AAPL",  # Apple Inc.
-             "HPQ",  # Hewlett Packard
-             "AMZN",  # Amazon Inc.
-             "MSFT",  # Microsoft Corp
-             "GOOGL",  # Alphabet Inc A
-             "INTC",  # Intel Corp
-             "CSCO",  # Cisco Systems Inc
-             "IBM",  # Intl Business Machines Corp
-             "ORCL",  # Oracle Corp
-             "QCOM"]  # QUALCOMM Inc
-
-vnames.append(symbols)
-
-""" Oil & Gas """
-
-symbols = ["XOM",  # Exxon Mobil Corp
-             "CVX",  # Chevron Corp
-             "SLB",  # Schlumberger Ltd
-             "OXY",  # Occidental Petroleum
-             "COP",  # ConocoPhillips
-             "EOG",  # EOG Resources
-             "HAL",  # Halliburton Co
-             "VLO",  # Valero Energy COrporation
-             "PXD",  # Pinoeer Natural Resources
-             "APC"]  # Anadarko Petroleum Corp
-
-vnames.append(symbols)
-
-"""  Consumer Goods """
-
-symbols = ["PG",  # Procter & Gamble
-             "KO",  # Coca-Cola Co
-             "PEP",  # PepsiCo Inc
-             "MO",  # Altria Group Inc
-             "MDLZ",  # Mondelez International Inc
-             "NKE",  # NIKE Inc B
-             "CL",  # Colgate-Palmolive Co
-             "GIS",  # General Mills
-             "ADM",  # Archer Daniels Midland
-             "F"]  # Ford Motor Co
-
-vnames.append(symbols)
 
 import pandas_datareader as pdr
 from datetime import datetime
+import time
 
-print(vnames)
+from datasets.SectorsNCompanies import yahoo_names
+from correlationMatrix import source_path
+dataset_path = source_path + "datasets/yahoo_equity_data"
 
-# appl = pdr.get_data_yahoo(symbols='AAPL', start=datetime(2000, 1, 1), end=datetime(2019, 1, 1))
-# print(appl['Adj Close'])
+
+for entity in yahoo_names[13:]:
+    symbol = entity[2]
+    dataset = pdr.get_data_yahoo(symbols=symbol, start=datetime(2000, 1, 1), end=datetime(2019, 1, 1))
+    dataset.to_csv(dataset_path + "/" + symbol + ".csv")
+    time.sleep(2)
+    print(symbol)
+
+# For individual stock testing
+# symbol = "NVS"
+# dataset = pdr.get_data_yahoo(symbols=symbol, start=datetime(2000, 1, 1), end=datetime(2019, 1, 1))
+# dataset.to_csv(dataset_path + "/" + symbol + ".csv")
+
