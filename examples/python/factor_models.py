@@ -14,7 +14,7 @@
 
 
 """
-Example workflows using correlationMatrix to estimate single factor models from
+Example workflows using correlationMatrix to estimate factor models from
 timeseries data. The datasets are produced in examples/generate_synthetic_data.py
 
 """
@@ -34,7 +34,7 @@ dataset_path = source_path + "datasets/"
 # Example 4: Grouped loadings
 # Example 5: Individual loadings
 
-example = 3
+example = 1
 
 # Step 1
 # Load the data set into a pandas frame
