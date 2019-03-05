@@ -32,10 +32,6 @@ class TestPreprocessing(unittest.TestCase):
         self.assertEqual(event_count, cohort_data['Count'].sum())
 
 
-class TestDataSetGenerators(unittest.TestCase):
-    pass
-
-
 if __name__ == "__main__":
 
     unittest.main()

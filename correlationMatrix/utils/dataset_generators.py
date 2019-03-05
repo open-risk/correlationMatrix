@@ -15,12 +15,30 @@
 
 import numpy as np
 import pandas as pd
+import correlationMatrix as cm
 
 """
-This module generates correlated timeseries data (in pandas dataframe format)
+This module provides functionality for the creation of various correlation matrices 
+or correlated timeseries data (in pandas dataframe format) 
+
 Useful for controlled experiments where the generative process in fully known
 
 """
+
+
+def generate_random_matrix(n=10):
+    """
+        Produce a random matrix for testing purposes
+        The simple method currently implemented uses an independent factor model with random loadings
+        Y = b F + e
+    """
+
+    b = np.random.uniform(low=-1.0, high=1.0, size=n)
+    C = np.outer(b, b)
+    for i in range(n):
+        C[i, i] = 1
+    myMatrix = cm.CorrelationMatrix(values=C)
+    return myMatrix
 
 
 def multivariate_normal(correlationmatrix, sample):
@@ -125,4 +143,49 @@ def apt_model(n, b, m, rho, sample):
     print(columns)
     print(data[:, :5])
     df = pd.DataFrame(data.transpose(), columns=columns)
+    return df
+
+
+def sector_model(n, b, rho, sample):
+    """
+    Generate samples from a stylized Sector model in the spirit of Credit Metrics
+
+    Suitable for testing estimation algorithms
+
+    The data format is a table with columns per entity ID and market factors
+
+    :param int n: The number of distinct entities to simulate per sector
+    :param list b: A list of loadings of the n entities to their market factor
+    :param int m: The number of market factors
+    :param rho: The correlation matrix to use for the simulation of the market factors
+    :param int sample: The number of samples to simulate
+    :rtype: pandas dataframe
+
+
+    """
+    # The loadings array
+    b = np.array(b)
+
+    # Sector returns on basis of input correlation matrix
+    mean = np.zeros(rho.dimension)
+    market_factors = np.random.multivariate_normal(mean, rho.matrix, sample).transpose()
+    m = rho.dimension
+
+    # Entity return residuals (m * n)
+    errors = np.random.normal(loc=0.0, scale=1.0, size=(n * m, sample))
+
+    # Initialize returns array (n*m)
+    returns = np.zeros((n * m, sample))
+    for sector in range(m):
+        for entity in range(n):
+            for s in range(sample):
+                return_id = entity + n * sector
+                returns[return_id][s] = b[entity] * market_factors[sector][s] + errors[return_id][s]
+
+    # put entity and sector returns together
+    data = np.append(returns, market_factors, 0)
+
+    columns = ['S' + str(i) for i in range(0, n * m)] + ['F' + str(i) for i in range(0, m)]
+    df = pd.DataFrame(data.transpose(), columns=columns)
+    print(df.head(5))
     return df

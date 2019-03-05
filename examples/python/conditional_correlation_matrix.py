@@ -17,15 +17,14 @@
 
 
 """
-import numpy as np
 import correlationMatrix as cm
-from datasets import Generic
+
 from correlationMatrix import source_path
 dataset_path = source_path + "datasets/"
 
 
 # Initialize a correlation matrix from the available examples
-myMatrix = cm.CorrelationMatrix(json_file='Generic.json')
+myMatrix = cm.CorrelationMatrix()
 
 
 # Select method to stress

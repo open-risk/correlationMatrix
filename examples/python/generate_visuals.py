@@ -14,8 +14,6 @@
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 from scipy.cluster.hierarchy import dendrogram, linkage
 
 import correlationMatrix as cm
@@ -28,7 +26,7 @@ Example workflows using correlationMatrix and matplotlib to generate visualizati
 """
 
 dataset_path = source_path + "datasets/"
-example = 2
+example = 1
 
 if example == 1:
     #
@@ -43,7 +41,8 @@ if example == 1:
     ax1.grid(True)
     plt.title('Vandermonde Correlation')
     fig.colorbar(cax, ticks=[i * 0.1 for i in range(0, 11)])
-    plt.show()
+    # plt.show()
+    plt.savefig('vandermonde.png')
 
 elif example == 2:
     #
@@ -64,6 +63,7 @@ elif example == 2:
         leaf_font_size=12.,
         show_contracted=True,  # to get a distribution impression in truncated branches
     )
-    plt.show()
+    # plt.show()
+    plt.savefig('dendrogram.png')
 
 

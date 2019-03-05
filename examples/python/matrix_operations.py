@@ -20,7 +20,6 @@ Examples using correlationMatrix to perform various correlation matrix operation
 
 import numpy as np
 
-
 import correlationMatrix as cm
 from correlationMatrix import dataset_path
 
@@ -55,10 +54,6 @@ print("> Values can be loaded from json or csv files")
 F = cm.CorrelationMatrix(json_file=dataset_path + "SingleFactor.json")
 F.print()
 print(F.validate())
-
-# Getting matrix info (dimensions, shape)
-# print(F.ndim)
-# print(F.shape)
 
 print("> Use pandas style API for saving to files")
 A.to_csv("TestMatrix.csv")

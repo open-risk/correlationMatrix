@@ -32,11 +32,6 @@ class TestDatasets(unittest.TestCase):
         a.validate()
         self.assertEqual(a.dimension, 3)
 
-    def test_matrix_set_load_csv(self):
-        a = cm.CorrelationMatrixSet(csv_file=dataset_path + "sp_1981-2016.csv", temporal_type='Cumulative')
-        a.validate()
-        self.assertEqual(a.periods, [1, 2, 3, 5, 7, 10, 15, 20])
-
 
 if __name__ == "__main__":
     unittest.main()

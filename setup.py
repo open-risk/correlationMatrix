@@ -17,7 +17,7 @@ from codecs import open
 
 from setuptools import setup
 
-__version__ = '0.4.1'
+__version__ = '0.1.0'
 
 ver = __version__
 
@@ -25,12 +25,11 @@ long_descr = open('description.rst', 'r', encoding='utf8').read()
 
 setup(name='correlationMatrix',
       version=ver,
-      description='A Python powered library for statistical analysis and visualization of state correlation phenomena',
+      description='A Python powered library for statistical analysis and visualization of correlation phenomena',
       long_description=long_descr,
       author='Open Risk',
       author_email='info@openrisk.eu',
-      packages=['correlationMatrix', 'correlationMatrix.estimators', 'correlationMatrix.utils', 'tests',
-                'correlationMatrix.thresholds', 'correlationMatrix.portfolio_model_lib', 'datasets', 'examples.python'],
+      packages=['correlationMatrix', 'correlationMatrix.utils', 'tests', 'datasets', 'examples.python'],
       include_package_data=True,
       url='https://github.com/open-risk/correlationMatrix',
       install_requires=[

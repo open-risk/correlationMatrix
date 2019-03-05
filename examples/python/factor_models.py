@@ -18,23 +18,21 @@ Example workflows using correlationMatrix to estimate factor models from
 timeseries data. The datasets are produced in examples/generate_synthetic_data.py
 
 """
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 import correlationMatrix as cm
 from correlationMatrix import source_path
-from correlationMatrix.utils.converters import datetime_to_float
 
 dataset_path = source_path + "datasets/"
+
+# Select which example you want to explore
 
 # Example 1: Uniform correlation multivariate model
 # Example 2: CAPM style Model
 # Example 3: APT style Model with uncorrelated market factors
-# Example 4: Grouped loadings
-# Example 5: Individual loadings
+# Example 4: Credit Metrics style factor model
 
-example = 1
+example = 4
 
 # Step 1
 # Load the data set into a pandas frame
@@ -58,4 +56,9 @@ elif example == 3:
     print("> Step 2: Estimate APT style model")
     myMatrix = cm.FactorCorrelationMatrix()
     myMatrix.fit(data, method='APTModel')
+elif example == 4:
+    data = pd.read_csv(dataset_path + 'synthetic_data4.csv')
+    print("> Step 2: Estimate Credit Metrics style model")
+    myMatrix = cm.FactorCorrelationMatrix()
+    myMatrix.fit(data, method='CreditMetrics')
 

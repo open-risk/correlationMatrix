@@ -23,10 +23,11 @@ Use utils/fetch_equity_data.py to fetch Yahoo Finance equity data
 """
 
 import pandas as pd
+
 import correlationMatrix as cm
-from correlationMatrix.utils.preprocessing import csv_files_to_frame, construct_log_returns, \
-normalize_log_returns
 from correlationMatrix import source_path
+from correlationMatrix.utils.preprocessing import csv_files_to_frame, construct_log_returns, \
+    normalize_log_returns
 from datasets.SectorsNCompanies import yahoo_names as entity_list
 
 input_dataset_path = source_path + "datasets/yahoo_equity_data/"
@@ -54,44 +55,6 @@ elif Step == 4:
     in_filename = output_dataset_path + 'yahoo_scaled_returns.csv'
     myMatrix = cm.FactorCorrelationMatrix()
     data = pd.read_csv(in_filename)
-    myMatrix.fit(data, method='SectorModel')
+    myMatrix.fit(data, method='CreditMetrics')
 
 
-
-
-"""
-
-data = pd.read_csv(dataset_path + 'sector_data.csv')
-
-# S&P Ratings State Space
-definition = [('0', "AAA"), ('1', "AA"), ('2', "A"), ('3', "BBB"),
-              ('4', "BB"), ('5', "B"), ('6', "CCC"), ('7', "D")]
-
-myState = cm.StateSpace(definition)
-print("> Describe state space")
-myState.describe()
-print("> List of states")
-print(myState.get_states())
-print("> List of state labels")
-print(myState.get_state_labels())
-
-print("> Load and validate dataset")
-data = pd.read_csv(dataset_path + 'synthetic_data4.csv', dtype={'State': str})
-sorted_data = data.sort_values(['ID', 'Timestep'], ascending=[True, True])
-print(myState.validate_dataset(dataset=sorted_data))
-
-# compute confidence interval using goodman method at 95% confidence level
-myEstimator = es.CohortEstimator(states=myState, ci={'method': 'goodman', 'alpha': 0.05})
-result = myEstimator.fit(sorted_data)
-
-# Print confidence intervals
-print("> Compute confidence interval using goodman method at 95% confidence level")
-myEstimator.summary()
-
-# Print the estimated results
-myMatrixSet = cm.CorrelationMatrixSet(values=result, temporal_type='Incremental')
-# print(myMatrixSet.temporal_type)
-print("> Print Estimated Matrix Set")
-myMatrixSet.print_matrix()
-
-"""

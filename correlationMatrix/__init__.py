@@ -16,6 +16,7 @@
 """ correlationMatrix -
 Python package for statistical analysis and visualization of correlation matrixes """
 
+import os
 from .model import *
 from .utils import *
 

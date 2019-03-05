@@ -6,7 +6,6 @@ It can be used to analyze any dataset that captures timestamped values (timeseri
 
 * Author: `Open Risk <http://www.openriskmanagement.com>`_
 * License: Apache 2.0
-* Code Documentation: `Read The Docs <https://correlationmatrix.readthedocs.io/en/latest/>`_
 * Mathematical Documentation: `Open Risk Manual <https://www.openriskmanual.org/wiki/Correlation_Matrix>`_
 * Training: `Open Risk Academy <https://www.openriskacademy.com/login/index.php>`_
 * Development Website: `Github <https://github.com/open-risk/correlationMatrix>`_
@@ -18,7 +17,7 @@ You can use correlationMatrix to
 
 - Estimate correlation matrices from historical timeseries using a variety of models
 - Visualize correlation matrices
-- Manipulate correlation matrices (fix problematic matrices etc)
+- Manipulate correlation matrices (fix problematic matrices, stress matrices etc)
 - Provide standardized data sets for testing
 
 **NB: correlationMatrix is still in active development. If you encounter issues please raise them in our
@@ -35,7 +34,7 @@ Links to other open source software
 -----------------------------------
 
 - correlationMatrix makes use of lower level methods available in numpy, scipy and statsmodels
-- There is a sister project for estimating transition rates transionMatrix
+- There is a sister project for estimating transition rates transitionMatrix
 
 Installation
 =======================
@@ -53,6 +52,8 @@ Dependencies
 
 From PyPi
 -------------
+
+TODO
 
 .. code:: bash
 
@@ -101,6 +102,7 @@ The distribution has the following structure:
 | correlationMatrix         The library source code
 |    model.py              Main data structures
 |    utils                 Helper classes and methods
+|    settings.py           Settings
 | examples                 Usage examples
 | datasets                 Contains a variety of datasets useful for getting started with correlationMatrix
 | tests                    Testing suite

@@ -17,8 +17,6 @@ module correlationMatrix.utils - helper classes and functions
 
 '''
 
-from __future__ import print_function, division
-
 import numpy as np
 import pandas as pd
 
@@ -61,6 +59,7 @@ def construct_log_returns(in_filename, out_filename):
     log_return_data = log_return_data.dropna()
     log_return_data.to_csv(out_filename, index=False)
 
+
 def normalize_log_returns(in_filename, out_filename):
     """
         Load a dataframe with log-return data from file
@@ -77,5 +76,5 @@ def normalize_log_returns(in_filename, out_filename):
         std = data[:, ts].std()
         scaled_data[:, ts] = (data[:, ts] - mean) / std
 
-    scaled_returns = pd.DataFrame(scaled_data,columns=cols)
+    scaled_returns = pd.DataFrame(scaled_data, columns=cols)
     scaled_returns.to_csv(out_filename, index=False)

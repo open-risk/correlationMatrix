@@ -15,13 +15,12 @@
 """ This module provides the key correlation matrix classes
 
 * correlationMatrix_ implements the functionality of single period correlation matrix
-* correlationMatrixSet_ provides a container for a multiperiod correlation matrix collection
+* TODO correlationMatrixSet_ provides a container for a multiperiod correlation matrix collection
 * EmpiricalCorrelationMatrix implements the functionality of a continuously observed correlation matrix
 
 """
 
 import json
-import os
 
 import numpy as np
 import pandas as pd
@@ -29,33 +28,13 @@ import requests
 import scipy.stats as sp
 from scipy.linalg import eigh
 from scipy.linalg import inv
-import statsmodels.multivariate.multivariate_ols as ols
-from sklearn.linear_model import LinearRegression
+from scipy.linalg import lstsq
 from sklearn.preprocessing import scale
 
-from scipy.linalg import lstsq
-
-# https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lstsq.html
-
-import matplotlib.pyplot as plt
-
-import correlationMatrix as cm
 from correlationMatrix.settings import EIGENVALUE_TOLERANCE
 
 
-def generate_random_matrix(n=10):
-    """
-        Produce a random matrix for testing purposes
-        The simple method currently implemented uses an independent factor model with random loadings
-        Y = b F + e
-    """
-
-    b = np.random.uniform(low=-1.0, high=1.0, size=n)
-    C = np.outer(b, b)
-    for i in range(n):
-        C[i, i] = 1
-    myMatrix = cm.CorrelationMatrix(values=C)
-    return myMatrix
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lstsq.html
 
 
 class CorrelationMatrix:
@@ -349,7 +328,6 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
         
 
         """
-        # self.samples = kwargs.get('samples')
 
     def get_data(self, data_url):
         r = requests.get(data_url)
@@ -419,7 +397,7 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
         Data1 = json.loads(json_string1)
         dates1 = Data1['Dates']
         values1 = Data1['Values']
-        # print(dates1, values1)
+
 
         json_string2 = raw_data2['_items'][0]['json_dump']
         Data2 = json.loads(json_string2)
@@ -446,11 +424,10 @@ class FactorCorrelationMatrix(CorrelationMatrix):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        """ Create a new correlations matrix from sampled data
+        """ Create a new correlation matrix from sampled data
 
 
         """
-        # self.samples = kwargs.get('samples')
 
     def fit(self, data, method='UniformSingleFactor'):
         """
@@ -458,155 +435,73 @@ class FactorCorrelationMatrix(CorrelationMatrix):
         - The single factor is constructed as the average of all realizations
         - Uniform loadings imply all return realizations are of the same variable r
 
-        """
 
-        # print(data.describe())
-        # print(len(data.index))
-        # rho, p = sp.pearsonr(data['S4'], F)
-
-        # for i in range(20):
-        #         rho, p = sp.pearsonr(Y[:, i], X[:, i])
-        #         print(rho)
-
-        # Control that the response variables (r) have the right correlation
-        # for i in range(20):
-        #     for j in range(20):
-        #         rho, p = sp.pearsonr(Y[:, i], Y[:, j])
-        #         print(rho)
-
-        if method == 'UniformSingleFactor':
-            # Response (dependent) variables
-            Y = data.values
-            # Control that the response variables (r) have the right correlation
-            # rho = data.corr(method='pearson').values
-            # print(rho)
-
-            # Compute the row average (Market factor)
-            F = data.mean(axis=1).values
-            # print(np.std(F0))
-
-            # print(np.std(F1))
-            # Normalize the market factor to unit variance
-            # Replicate the market factor for the multiple regression
-            # X = np.tile(F1, (Y.shape[1], 1)).transpose()
-            X = scale(F, with_mean=False, with_std=True)
-            # np.reshape(X, (100, 1))
-            # np.reshape(X, (-1, 1))
-
-            print(Y.shape)
-            print(X.shape)
-
-            corrs = []
-            for i in range(Y.shape[1]):
-                rho, p = sp.pearsonr(X, Y[:, i])
-                corrs.append(rho)
-            print(np.mean(corrs) ** 2)
-            # res = smf.ols(formula='r ~ F', data=data).fit()
-            # estimator = LinearRegression(fit_intercept=False)
-            # results = estimator.fit(X, Y)
-            # print(dir(results))
-            # print(results.coef_)
-
-            b = lstsq(X[:, 0], Y[:, 0])
-
-            # X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])
-            # # y = 1 * x_0 + 2 * x_1 + 3
-            # y = np.dot(X, np.array([1, 2])) + 3
-            # reg = LinearRegression().fit(X, Y)
-            # print(reg.coef_)
-
-            # estimator = ols._MultivariateOLS(X, Y)
-            # results = estimator.fit()
-            # print(results)
-            # plt.plot(b)
-            # plt.show()
-
-        # self.matrix = rho
-
-        elif method == 'CAPMModel':
-            print("Lets do this")
-
-            raw_data = data.values
-
-            print(raw_data.shape)
-            n = raw_data.shape[1] - 1
-            # the market factor
-            X = raw_data[:, 3]
-            # the single stock
-            Y = raw_data[:, 0]
-
-            # for i in range(3):
-            #     Y = raw_data[:, i]
-            #     print(i, sp.pearsonr(Y, X))
-
-            # plt.plot(X, Y)
-            # plt.show()
-
-            """
             scipy lstsq API
-             
-                Parameters:	
-                
+
+                Parameters:
+
                 a : (M, N) array_like    Left hand side matrix (2-D array).
                 b : (M,) or (M, K) array_like  Right hand side matrix or vector (1-D or 2-D array).
-                cond : float, optional Cutoff for ‘small’ singular values; used to determine effective rank of a. 
+                cond : float, optional Cutoff for ‘small’ singular values; used to determine effective rank of a.
                     Singular values smaller than rcond * largest_singular_value are considered zero.
                 overwrite_a : bool, optional Discard data in a (may enhance performance). Default is False.
                 overwrite_b : bool, optional Discard data in b (may enhance performance). Default is False.
-                check_finite : bool, optional Whether to check that the input matrices contain only finite numbers. 
-                    Disabling may give a performance gain, but may result in problems (crashes, non-termination) 
+                check_finite : bool, optional Whether to check that the input matrices contain only finite numbers.
+                    Disabling may give a performance gain, but may result in problems (crashes, non-termination)
                     if the inputs do contain infinities or NaNs.
-                lapack_driver : str, optional Which LAPACK driver is used to solve the least-squares problem. 
+                lapack_driver : str, optional Which LAPACK driver is used to solve the least-squares problem.
                 Options are 'gelsd', 'gelsy', 'gelss'. Default ('gelsd') is a good choice. However, 'gelsy' can be slightly faster on many problems. 'gelss' was used historically. It is generally slow but uses less memory.
-                                
-                Returns:	
-                
+
+                Returns:
+
                 x : (N,) or (N, K) ndarray Least-squares solution. Return shape matches shape of b.
-                residues : (0,) or () or (K,) ndarray Sums of residues, squared 2-norm for each column in b - a x. 
-                    If rank of matrix a is < N or N > M, or 'gelsy' is used, this is a length zero array. If b was 1-D, 
+                residues : (0,) or () or (K,) ndarray Sums of residues, squared 2-norm for each column in b - a x.
+                    If rank of matrix a is < N or N > M, or 'gelsy' is used, this is a length zero array. If b was 1-D,
                     this is a () shape array (numpy scalar), otherwise the shape is (K,).
                 rank : int  Effective rank of matrix a.
-                s : (min(M,N),) ndarray or None  Singular values of a. The condition number of a is abs(s[0] / s[-1]). 
+                s : (min(M,N),) ndarray or None  Singular values of a. The condition number of a is abs(s[0] / s[-1]).
                     None is returned when 'gelsy' is used.
 
-            """
+        """
 
-            # TODO stack the individual stock values when the model ask for single loading
-            # TODO grouped stock loadings
+        if method == 'UniformSingleFactor':
+            # Response (dependent) variables (all entities)
+            R = data.values
+
+            # Control that the response variables (r) have the right correlation
+            rho = data.corr(method='pearson').values
+
+            # Compute the row average (Market factor) of all entities
+            # Normalize the market factor to unit variance
+            F0 = data.mean(axis=1).values
+            F = scale(F0, with_mean=False, with_std=True)
+
+            # stack the return observations into a single vector
+            b = R.reshape((R.shape[0] * R.shape[1], 1))
+
+            # copy the factor observations into a single vector
+            a = F.repeat(R.shape[1])
+            n = len(a)
+            a.shape = (n, 1)
+
+            # Find the common loading of entities to the market factor
+            p, res, rnk, s = lstsq(a, b)
+            print(p, res, rnk, s)
+
+        elif method == 'CAPMModel':
+
+            raw_data = data.values
+
+            # the market factor
+            a = raw_data[:, 3]
 
             # Find all the loadings of entities to the market factor
-            a = X
             n = len(a)
             a.shape = (n, 1)
             for i in range(3):
                 b = raw_data[:, i]
                 p, res, rnk, s = lstsq(a, b)
                 print(p, res, rnk, s)
-
-            # # Control that the response variables (r) have the right correlation
-            # # rho = data.corr(method='pearson').values
-            # # print(rho)
-            #
-            # # Compute the row average (Market factor)
-            # F = data.mean(axis=1).values
-            # # print(np.std(F0))
-            #
-            # # print(np.std(F1))
-            # # Normalize the market factor to unit variance
-            # # Replicate the market factor for the multiple regression
-            # # X = np.tile(F1, (Y.shape[1], 1)).transpose()
-            # X = scale(F, with_mean=False, with_std=True)
-            # # np.reshape(X, (100, 1))
-            # # np.reshape(X, (-1, 1))
-            #
-            # print(Y.shape)
-            # print(X.shape)
-            #
-            # corrs = []
-            # for i in range(Y.shape[1]):
-            #     rho, p = sp.pearsonr(X, Y[:, i])
-            #     corrs.append(rho)
-            # print(np.mean(corrs)**2)
 
         elif method == 'APTModel':
 
@@ -618,24 +513,30 @@ class FactorCorrelationMatrix(CorrelationMatrix):
             a = raw_data[:, n - m:n]
             print(a.shape)
 
-            # b = raw_data[:, 5]
-            # n = raw_data.shape[1] - 1
-            # # the market factor
-            # X = raw_data[:, 3]
-            # # the single stock
-            # Y = raw_data[:, 0]
-            #
-            # a = X
-            # n = len(a)
-            # a.shape = (n, 1)
             for i in range(n - m):
                 b = raw_data[:, i]
                 p, res, rnk, s = lstsq(a, b)
                 print(p, res, rnk, s)
 
-        elif method == 'SectorModel':
+        elif method == 'CreditMetrics':
+
+            print('Building Credit Metrics style Sector Model')
             raw_data = data.values
-            print('Building Sector Model')
+            print(raw_data.shape)
+            m = 5
+            n = raw_data.shape[1]
+
+            # First we fit a sector correlation model
+            sector_data = raw_data[:, n - m:n].transpose()
+            rho = np.corrcoef(sector_data)
+            print(rho)
+
+            # Next we find the loadings of entities to sectoral factors
+            a = raw_data[:, n - m:n]
+            for i in range(n - m):
+                b = raw_data[:, i]
+                p, res, rnk, s = lstsq(a, b)
+                print(p, res, rnk, s)
 
         else:
             print('Invalid Mode')
