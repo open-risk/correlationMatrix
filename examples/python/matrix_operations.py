@@ -22,6 +22,7 @@ import numpy as np
 
 import correlationMatrix as cm
 from correlationMatrix import dataset_path
+from correlationMatrix.utils.converters import matrix_print
 
 print("> Initialize a 3x3 matrix with values")
 A = cm.CorrelationMatrix(values=[[1.0, 0.2, 0.2], [0.2, 1.0, 0.2], [0.2, 0.2, 1.0]])
@@ -72,6 +73,10 @@ print(np.matmul(A.matrix, A.inverse()))
 
 # Generate a random matrix
 print("> Generate a random correlation matrix")
-G = cm.generate_random_matrix(100)
+G = cm.generate_random_matrix(10)
 print(G.validate())
+
+# Apply Cholesky decomposition
+print("> Calculate its Cholesky decomposition")
+matrix_print(G.decompose('cholesky'), accuracy=2)
 

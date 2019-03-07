@@ -16,6 +16,7 @@
 
 * correlationMatrix_ implements the functionality of single period correlation matrix
 * TODO correlationMatrixSet_ provides a container for a multiperiod correlation matrix collection
+* TODO PairwiseCorrelation implements functionality for pairwise data analysis of timeseries
 * EmpiricalCorrelationMatrix implements the functionality of a continuously observed correlation matrix
 
 """
@@ -32,9 +33,82 @@ from scipy.linalg import lstsq
 from sklearn.preprocessing import scale
 
 from correlationMatrix.settings import EIGENVALUE_TOLERANCE
+from correlationMatrix.utils.converters import matrix_print
 
 
-# https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lstsq.html
+def get_data(data_url):
+    r = requests.get(data_url)
+    return r.json()
+
+
+def make_uniform(dates1, values1, dates2, values2):
+    # make the two timeseries arrays uniform (select common observation dates)
+    # find common dates
+    # return values on common dates
+    common_dates = list(set(dates1).intersection(dates2))
+
+    new_values1 = []
+    new_values2 = []
+    for date in common_dates:
+        i1 = dates1.index(date)
+        i2 = dates2.index(date)
+        new_values1.append(values1[i1])
+        new_values2.append(values2[i2])
+
+    x = new_values1
+    y = new_values2
+    return x, y
+
+
+class PairwiseCorrelation(object):
+
+    # calculate the linear (Pearson) correlation
+    def pearsonr(self, x, y):
+        rho, p = sp.kendalltau(x, y)
+        return rho, p
+
+    # calculate the kendall correlation between two timeseries
+    def kendallr(self, x, y):
+        rho, p = sp.kendalltau(x, y)
+        return rho, p
+
+    # calculate the spearman correlation
+    def spearmanr(self, x, y):
+        rho, p = sp.spearmanr(x, y)
+        return rho, p
+
+    def calculate(self, model_name, input1_url, input2_url):
+
+        # Get data from URL
+        # TODO specify valid formats
+        raw_data1 = get_data(input1_url)
+        raw_data2 = get_data(input2_url)
+
+        # Process response (API dependent)
+        json_string1 = raw_data1['_items'][0]['json_dump']
+        Data1 = json.loads(json_string1)
+        dates1 = Data1['Dates']
+        values1 = Data1['Values']
+
+        json_string2 = raw_data2['_items'][0]['json_dump']
+        Data2 = json.loads(json_string2)
+        dates2 = Data2['Dates']
+        values2 = Data2['Values']
+
+        # Make data uniform
+        # TODO expand on missing data / dataquality treatment
+        x, y = make_uniform(dates1, values1, dates2, values2)
+
+        rho = None
+        p = None
+
+        if model_name == 'Pearson_Correlation':
+            rho, p = self.pearsonr(x, y)
+        elif model_name == 'Kendall_Correlation':
+            rho, p = self.kendallr(x, y)
+        elif model_name == 'Spearman_Correlation':
+            rho, p = self.spearmanr(x, y)
+        return {'rho': rho, 'p': p}
 
 
 class CorrelationMatrix:
@@ -263,31 +337,19 @@ class CorrelationMatrix:
         pass
 
     def print(self, format_type='Standard', accuracy=2):
-        """ Pretty print a correlation matrix
-
-        :param format_type: formatting options (Standard, Percent)
-        :type format_type: str
-        :param accuracy: number of decimals to display
-        :type accuracy: int
-
-        """
-        for s_in in range(self.matrix.shape[0]):
-            for s_out in range(self.matrix.shape[1]):
-                if format_type is 'Standard':
-                    format_string = "{0:." + str(accuracy) + "f}"
-                    print(format_string.format(self.matrix[s_in, s_out]) + ' ', end='')
-                elif format_type is 'Percent':
-                    print("{0:.2f}%".format(100 * self.matrix[s_in, s_out]) + ' ', end='')
-            print('')
-        print('')
+        matrix_print(self.matrix, format_type=format_type, accuracy=accuracy)
 
     def decompose(self, method):
         """
-        TODO Create a decomposition of the correlation matrix according to the selected method
         :param method:
         :return:
         """
-        pass
+        if method == 'cholesky':
+            L = np.linalg.cholesky(self.matrix)
+            return L
+        elif method == 'svd':
+            U, S, VH = np.linalg.svd(self.matrix, full_matrices=True)
+            return U, S, VH
 
     def stress(self, scenario, method):
         """
@@ -321,35 +383,12 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
     """
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
-        super().__init__(values=None, type=None, json_file=None, csv_file=None, **kwargs)
-
-        """ Create a new correlations matrix from sampled data
+        """ Create a new correlation matrix from sampled data
         
 
         """
-
-    def get_data(self, data_url):
-        r = requests.get(data_url)
-        return r.json()
-
-    def make_uniform(self, dates1, values1, dates2, values2):
-        # make the two timeseries arrays uniform (select common observation dates)
-        # find common dates
-        # return values on common dates
-        common_dates = list(set(dates1).intersection(dates2))
-
-        new_values1 = []
-        new_values2 = []
-        for date in common_dates:
-            i1 = dates1.index(date)
-            i2 = dates2.index(date)
-            new_values1.append(values1[i1])
-            new_values2.append(values2[i2])
-
-        x = new_values1
-        y = new_values2
-        return x, y
 
     def fit(self, data, method='pearson'):
         """
@@ -359,66 +398,42 @@ class EmpiricalCorrelationMatrix(CorrelationMatrix):
         rho = data.corr(method=method).values
         self.matrix = rho
 
-    def pearsonr(self, data):
-        # make input1 and input2 uniform
-        # x, y = self.make_uniform(dates1, values1, dates2, values2)
-        # rho, p = sp.pearsonr(x, y)
-        # return rho, p
-        rho = data.corr(method='pearson').values
-        self.matrix = rho
-
-    # calculate the kendall correlation
-    def kendallr(self, dates1, values1, dates2, values2):
-        # make input1 and input2 uniform
-        x, y = self.make_uniform(dates1, values1, dates2, values2)
-        # print(x, y)
-        rho, p = sp.kendalltau(x, y)
-        return rho, p
-
-    # calculate the spearman correlation
-    def spearmanr(self, dates1, values1, dates2, values2):
-        # make input1 and input2 uniform
-        x, y = self.make_uniform(dates1, values1, dates2, values2)
-        rho, p = sp.spearmanr(x, y)
-        return rho, p
-
-    # the correlation collection (ADD OTHER functions)
-    def calculate_correlation(self, model_name, input1_url, input2_url):
-        # python models evaluated directly
-        # c++ models evaluated via CGI requests
-
-        # print(model_name)
-        # Exctract timeseries data for calculation
-
-        raw_data1 = self.get_data(input1_url)
-        raw_data2 = self.get_data(input2_url)
-
-        json_string1 = raw_data1['_items'][0]['json_dump']
-        Data1 = json.loads(json_string1)
-        dates1 = Data1['Dates']
-        values1 = Data1['Values']
-
-
-        json_string2 = raw_data2['_items'][0]['json_dump']
-        Data2 = json.loads(json_string2)
-        dates2 = Data2['Dates']
-        values2 = Data2['Values']
-
-        if model_name == 'Pearson_Correlation':
-            rho, p = self.pearsonr(dates1, values1, dates2, values2)
-        elif model_name == 'Kendall_Correlation':
-            rho, p = self.kendallr(dates1, values1, dates2, values2)
-        elif model_name == 'Spearman_Correlation':
-            rho, p = self.spearmanr(dates1, values1, dates2, values2)
-        return {'rho': rho, 'p': p}
-
 
 class FactorCorrelationMatrix(CorrelationMatrix):
-    """  The FactorCorrelationMatrix class fits a variety of factor models
-
-    It stores the derived parameters and modelled correlation matrix values
-
+    """  The FactorCorrelationMatrix class
+    - fits a variety of factor models
+    - stores the derived parameters and modelled correlation matrix values
     TODO compute and store confidence intervals
+
+    Factor Models are estimated using OLS in various incarnatios
+    Get the full scoop on lstsq at https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lstsq.html
+
+    scipy lstsq API
+
+        Parameters:
+
+        a : (M, N) array_like    Left hand side matrix (2-D array).
+        b : (M,) or (M, K) array_like  Right hand side matrix or vector (1-D or 2-D array).
+        cond : float, optional Cutoff for ‘small’ singular values; used to determine effective rank of a.
+            Singular values smaller than rcond * largest_singular_value are considered zero.
+        overwrite_a : bool, optional Discard data in a (may enhance performance). Default is False.
+        overwrite_b : bool, optional Discard data in b (may enhance performance). Default is False.
+        check_finite : bool, optional Whether to check that the input matrices contain only finite numbers.
+            Disabling may give a performance gain, but may result in problems (crashes, non-termination)
+            if the inputs do contain infinities or NaNs.
+        lapack_driver : str, optional Which LAPACK driver is used to solve the least-squares problem.
+        Options are 'gelsd', 'gelsy', 'gelss'. Default ('gelsd') is a good choice. However, 'gelsy' can be slightly faster on many problems. 'gelss' was used historically. It is generally slow but uses less memory.
+
+        Returns:
+
+        x : (N,) or (N, K) ndarray Least-squares solution. Return shape matches shape of b.
+        residues : (0,) or () or (K,) ndarray Sums of residues, squared 2-norm for each column in b - a x.
+            If rank of matrix a is < N or N > M, or 'gelsy' is used, this is a length zero array. If b was 1-D,
+            this is a () shape array (numpy scalar), otherwise the shape is (K,).
+        rank : int  Effective rank of matrix a.
+        s : (min(M,N),) ndarray or None  Singular values of a. The condition number of a is abs(s[0] / s[-1]).
+            None is returned when 'gelsy' is used.
+
 
     """
 
@@ -431,36 +446,11 @@ class FactorCorrelationMatrix(CorrelationMatrix):
 
     def fit(self, data, method='UniformSingleFactor'):
         """
+
+        Method: 'UniformSingleFactor'
         Estimate a single factor model with uniform loadings
         - The single factor is constructed as the average of all realizations
         - Uniform loadings imply all return realizations are of the same variable r
-
-
-            scipy lstsq API
-
-                Parameters:
-
-                a : (M, N) array_like    Left hand side matrix (2-D array).
-                b : (M,) or (M, K) array_like  Right hand side matrix or vector (1-D or 2-D array).
-                cond : float, optional Cutoff for ‘small’ singular values; used to determine effective rank of a.
-                    Singular values smaller than rcond * largest_singular_value are considered zero.
-                overwrite_a : bool, optional Discard data in a (may enhance performance). Default is False.
-                overwrite_b : bool, optional Discard data in b (may enhance performance). Default is False.
-                check_finite : bool, optional Whether to check that the input matrices contain only finite numbers.
-                    Disabling may give a performance gain, but may result in problems (crashes, non-termination)
-                    if the inputs do contain infinities or NaNs.
-                lapack_driver : str, optional Which LAPACK driver is used to solve the least-squares problem.
-                Options are 'gelsd', 'gelsy', 'gelss'. Default ('gelsd') is a good choice. However, 'gelsy' can be slightly faster on many problems. 'gelss' was used historically. It is generally slow but uses less memory.
-
-                Returns:
-
-                x : (N,) or (N, K) ndarray Least-squares solution. Return shape matches shape of b.
-                residues : (0,) or () or (K,) ndarray Sums of residues, squared 2-norm for each column in b - a x.
-                    If rank of matrix a is < N or N > M, or 'gelsy' is used, this is a length zero array. If b was 1-D,
-                    this is a () shape array (numpy scalar), otherwise the shape is (K,).
-                rank : int  Effective rank of matrix a.
-                s : (min(M,N),) ndarray or None  Singular values of a. The condition number of a is abs(s[0] / s[-1]).
-                    None is returned when 'gelsy' is used.
 
         """
 
