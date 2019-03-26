@@ -72,6 +72,7 @@ def construct_log_returns(in_filename, out_filename, drop_columns=None):
     """
         Load a dataframe with level data from file
         Drop a list of columns that are not to be processed
+        Construct log-returns
         Store to file
 
     """
@@ -87,6 +88,28 @@ def construct_log_returns(in_filename, out_filename, drop_columns=None):
 
     log_return_data = log_return_data.dropna()
     log_return_data.to_csv(out_filename, index=False)
+
+
+def construct_returns(in_filename, out_filename, drop_columns=None):
+    """
+        Load a dataframe with level data from file
+        Drop a list of columns that are not to be processed
+        Construct simple returns
+        Store to file
+
+    """
+    if drop_columns:
+        level_data = pd.read_csv(in_filename).drop(columns=drop_columns)
+    else:
+        level_data = pd.read_csv(in_filename)
+
+    return_data = pd.DataFrame()
+
+    for column in level_data:
+        return_data[column] = level_data[column] - level_data[column].shift(1)
+
+    return_data = return_data.dropna()
+    return_data.to_csv(out_filename, index=False)
 
 
 def normalize_log_returns(in_filename, out_filename):
