@@ -44,13 +44,42 @@ def csv_files_to_frame(list, directory, filename):
     return df
 
 
-def construct_log_returns(in_filename, out_filename):
+def json_file_to_frame(input_filename, output_filename):
+    """
+        Given a file name with json data in the format
+        {
+            "Entity1" : [Values],
+            "Entity2" : [Values],
+            ...
+            "EntityN" : [Values]
+        }
+        Convert the data to a pandas dataframe for further processing
+
+    """
+
+    entity_data = pd.read_json(input_filename)
+    # select_data = entity_data.drop(columns=['High', 'Low', 'Open', 'Close', 'Volume'])
+    # index_data = select_data.set_index('Date')
+    # rename_data = index_data.rename(columns={"Adj Close": entry_name})
+    # df = pd.concat([df, rename_data], axis=1, sort=False)
+    #
+    entity_data.to_csv(output_filename, index=False)
+
+    return entity_data
+
+
+def construct_log_returns(in_filename, out_filename, drop_columns=None):
     """
         Load a dataframe with level data from file
+        Drop a list of columns that are not to be processed
         Store to file
 
     """
-    level_data = pd.read_csv(in_filename).drop(columns=['Date'])
+    if drop_columns:
+        level_data = pd.read_csv(in_filename).drop(columns=drop_columns)
+    else:
+        level_data = pd.read_csv(in_filename)
+
     log_return_data = pd.DataFrame()
 
     for column in level_data:
@@ -67,9 +96,11 @@ def normalize_log_returns(in_filename, out_filename):
         Store to file
 
     """
+    mean_vals, std_vals = [], []
     log_return_data = pd.read_csv(in_filename)
     data = log_return_data.values
     cols = list(log_return_data)
+    print('Entity Names: ', cols)
     scaled_data = np.asarray(data)
     for ts in range(data.shape[1]):
         mean = data[:, ts].mean()
@@ -78,3 +109,9 @@ def normalize_log_returns(in_filename, out_filename):
 
     scaled_returns = pd.DataFrame(scaled_data, columns=cols)
     scaled_returns.to_csv(out_filename, index=False)
+
+    for ts in range(data.shape[1]):
+        mean_vals.append(scaled_data[:, ts].mean())
+        std_vals.append(scaled_data[:, ts].std())
+
+    return mean_vals, std_vals

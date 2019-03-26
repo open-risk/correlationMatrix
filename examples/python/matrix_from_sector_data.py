@@ -33,7 +33,7 @@ from datasets.SectorsNCompanies import yahoo_names as entity_list
 input_dataset_path = source_path + "datasets/yahoo_equity_data/"
 output_dataset_path = source_path + "datasets/"
 
-Step = 4
+Step = 2
 
 if Step == 1:
     # Concatenate input data into a single dataframe and save to disk
@@ -44,7 +44,9 @@ elif Step == 2:
     print("> Calculate log returns and save to disk")
     in_filename = output_dataset_path + 'yahoo_merged_data.csv'
     out_filename = output_dataset_path + 'yahoo_log_returns.csv'
-    construct_log_returns(in_filename, out_filename)
+    # Drop any columns we don't want to compute differences on
+    drop_columns = ['Date']
+    construct_log_returns(in_filename, out_filename, drop_columns)
 elif Step == 3:
     print("> Calculate normalized log returns and save to disk")
     in_filename = output_dataset_path + 'yahoo_log_returns.csv'

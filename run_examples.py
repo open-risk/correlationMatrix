@@ -22,7 +22,7 @@ from correlationMatrix import source_path
 examples_path = source_path + "examples/python/"
 filelist = ['matrix_operations', 'fix_correlation_matrix', 'generate_synthetic_data', 'empirical_correlation_matrix',
             'factor_models', 'conditional_correlation_matrix',
-            'generate_visuals', 'matrix_from_sector_data']
+            'generate_visuals', 'matrix_from_sector_data', 'matrix_from_json_data']
 
 if __name__ == '__main__':
 
