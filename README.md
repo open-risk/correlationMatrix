@@ -19,6 +19,8 @@ Key Information
 * License: Apache 2.0
 * Mathematical Documentation: [Open Risk Manual](https://www.openriskmanual.org/wiki/Correlation_Matrix)
 * Development website: [Github](https://github.com/open-risk/correlationMatrix)
+* General Discussions: [Gitter](https://gitter.im/open-risk/Lobby)
+* Package Specific Chat: [Gitter](https://gitter.im/open-risk/correlationMatrix)
 
 **NB: correlationMatrix is still in active development. If you encounter issues please raise them in our
 github repository**
