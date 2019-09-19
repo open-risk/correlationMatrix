@@ -1,3 +1,5 @@
+[![Gitter](https://badges.gitter.im/open-risk/correlationMatrix.svg)](https://gitter.im/open-risk/correlationMatrix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Intro
 =========================
 correlationMatrix is a Python powered library for the statistical analysis and visualization of correlation 
