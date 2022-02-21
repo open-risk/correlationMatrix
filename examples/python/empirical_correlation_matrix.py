@@ -18,13 +18,10 @@ Example workflow using correlationMatrix to estimate an empirical correlation ma
 timeseries data. The datasets are produced in examples/generate_synthetic_data.py
 
 """
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 import correlationMatrix as cm
 from correlationMatrix import source_path
-from correlationMatrix.utils.converters import datetime_to_float
 
 dataset_path = source_path + "datasets/"
 

@@ -65,5 +65,3 @@ elif example == 2:
     )
     # plt.show()
     plt.savefig('dendrogram.png')
-
-

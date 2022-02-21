@@ -91,4 +91,3 @@ elif dataset == 4:
     rho = cm.CorrelationMatrix(type='UniformSingleFactor', rho=0.3, n=m)
     data = dataset_generators.sector_model(n=n, b=b, rho=rho, sample=10000)
     data.to_csv(dataset_path + 'synthetic_data4.csv', index=False)
-

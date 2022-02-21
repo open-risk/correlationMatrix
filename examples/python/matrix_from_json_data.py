@@ -28,7 +28,6 @@ from correlationMatrix import source_path
 from correlationMatrix.utils.preprocessing import construct_returns, \
     normalize_log_returns, json_file_to_frame
 
-
 input_dataset_path = source_path + "datasets/"
 output_dataset_path = source_path + "datasets/"
 

@@ -21,9 +21,9 @@ ACCURATE_DIGITS = 7
 
 
 class TestcorrelationMatrix(unittest.TestCase):
-    '''
+    """
     Default instance (2x2 identity matrix)
-    '''
+    """
 
     def test_instantiate_matrix(self):
         a = cm.CorrelationMatrix()

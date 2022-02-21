@@ -61,4 +61,3 @@ elif example == 4:
     print("> Step 2: Estimate Credit Metrics style model")
     myMatrix = cm.FactorCorrelationMatrix()
     myMatrix.fit(data, method='CreditMetrics')
-

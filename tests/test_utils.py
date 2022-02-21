@@ -13,9 +13,6 @@
 # limitations under the License.
 
 import unittest
-import correlationMatrix as cm
-from correlationMatrix import source_path
-import pandas as pd
 
 ACCURATE_DIGITS = 7
 

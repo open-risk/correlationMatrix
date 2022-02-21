@@ -23,9 +23,9 @@ ACCURATE_DIGITS = 7
 
 
 class TestDatasets(unittest.TestCase):
-    '''
+    """
     Load in-memory matrices
-    '''
+    """
 
     def test_minimal_matrix(self):
         a = cm.CorrelationMatrix(values=Minimal)

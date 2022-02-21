@@ -50,7 +50,6 @@ print("> All ndarray functionality is available")
 E = cm.CorrelationMatrix(values=[[1.0, 0.25], [0.0, 1.0]])
 print(E.validate())
 
-
 print("> Values can be loaded from json or csv files")
 F = cm.CorrelationMatrix(json_file=dataset_path + "SingleFactor.json")
 F.print()
@@ -79,4 +78,3 @@ print(G.validate())
 # Apply Cholesky decomposition
 print("> Calculate its Cholesky decomposition")
 matrix_print(G.decompose('cholesky'), accuracy=2)
-
