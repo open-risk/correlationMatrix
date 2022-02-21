@@ -17,7 +17,7 @@ matplotlib==3.5.1
 mpmath==1.2.1
 numpy==1.21.0
 packaging==21.3
-pandas==1.4.1
+pandas==0.25.3
 pandas-datareader==0.10.0
 patsy==0.5.2
 Pillow==9.0.1
