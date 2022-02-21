@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# (c) 2019 Open Risk, all rights reserved
+# (c) 2019-2022 Open Risk, all rights reserved
 #
 # correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
 # in the source distribution of correlationMatrix. This is notwithstanding any licenses of
@@ -32,11 +32,11 @@ from correlationMatrix.utils.preprocessing import construct_returns, \
 input_dataset_path = source_path + "datasets/"
 output_dataset_path = source_path + "datasets/"
 
-Step = 4
+Step = 4  # Change this to create intermediate data files
 
 if Step == 1:
     print("> Load the data from a json file")
-    input_filename = output_dataset_path + 'output.json'
+    input_filename = output_dataset_path + 'json_example.json'
     output_filename = output_dataset_path + 'json_example.csv'
     json_file_to_frame(input_filename, output_filename)
 elif Step == 2:

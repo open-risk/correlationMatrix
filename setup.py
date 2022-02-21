@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# (c) 2019 Open Risk (https://www.openriskmanagement.com)
+# (c) 2019-2022 Open Risk (https://www.openriskmanagement.com)
 #
 # correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
 # in the source distribution of correlationMatrix. This is notwithstanding any licenses of
@@ -17,7 +17,7 @@ from codecs import open
 
 from setuptools import setup
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 ver = __version__
 
@@ -27,6 +27,7 @@ setup(name='correlationMatrix',
       version=ver,
       description='A Python powered library for statistical analysis and visualization of correlation phenomena',
       long_description=long_descr,
+      long_description_content_type='text/x-rst',
       author='Open Risk',
       author_email='info@openrisk.eu',
       packages=['correlationMatrix', 'correlationMatrix.utils', 'tests', 'datasets', 'examples.python'],
@@ -50,9 +51,7 @@ setup(name='correlationMatrix',
           'License :: OSI Approved :: Apache Software License',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 3 :: Only',
-          'Programming Language :: Python :: 3.3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.8',
           'Topic :: Scientific/Engineering',
           'Topic :: Scientific/Engineering :: Information Analysis'
       ]

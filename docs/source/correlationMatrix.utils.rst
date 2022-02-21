@@ -1,5 +1,5 @@
 correlationMatrix.utils subpackage
-=================================
+==================================
 
 correlationMatrix.utils contents
 ---------------------------------------------

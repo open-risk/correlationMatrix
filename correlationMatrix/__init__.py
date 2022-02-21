@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# (c) 2019 Open Risk (https://www.openriskmanagement.com)
+# (c) 2019-2022 Open Risk (https://www.openriskmanagement.com)
 #
 # correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
 # in the source distribution of correlationMatrix. This is notwithstanding any licenses of
@@ -20,7 +20,7 @@ import os
 from .model import *
 from .utils import *
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 package_name = 'correlationMatrix'
 module_path = os.path.dirname(__file__)

@@ -3,6 +3,11 @@ ChangeLog
 
 PLEASE NOTE THAT THE API IS STILL UNSTABLE AS MORE USE CASES / FEATURES ARE ADDED REGULARLY
 
+v0.2.0 (21-02-2022)
+-------------------
+* Installation:
+    * PyPI release update
+
 v0.1.2 (26-03-2019)
 -------------------
 

@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# (c) 2019 Open Risk, all rights reserved
+# (c) 2019-2022 Open Risk, all rights reserved
 #
 # correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
 # in the source distribution of correlationMatrix. This is notwithstanding any licenses of
@@ -23,13 +23,7 @@ ACCURATE_DIGITS = 7
 class TestPreprocessing(unittest.TestCase):
 
     def test_bin_timestamps(self):
-
-        dataset_path = source_path + "datasets/"
-        data = pd.read_csv(dataset_path + 'synthetic_data1.csv')
-        event_count = data['ID'].count()
-        cohort_data, cohort_intervals = cm.utils.bin_timestamps(data, cohorts=5)
-        cohort_data['Count'] = cohort_data['Count'].astype(int)
-        self.assertEqual(event_count, cohort_data['Count'].sum())
+        pass
 
 
 if __name__ == "__main__":

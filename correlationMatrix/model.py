@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# (c) 2019 Open Risk (https://www.openriskmanagement.com)
+# (c) 2019-2022 Open Risk (https://www.openriskmanagement.com)
 #
 # correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
 # in the source distribution of correlationMatrix. This is notwithstanding any licenses of
@@ -14,8 +14,8 @@
 
 """ This module provides the key correlation matrix classes
 
-* correlationMatrix_ implements the functionality of single period correlation matrix
-* TODO correlationMatrixSet_ provides a container for a multiperiod correlation matrix collection
+* correlationMatrix implements the functionality of single period correlation matrix
+* TODO correlationMatrixSet provides a container for a multiperiod correlation matrix collection
 * TODO PairwiseCorrelation implements functionality for pairwise data analysis of timeseries
 * EmpiricalCorrelationMatrix implements the functionality of a continuously observed correlation matrix
 
@@ -260,7 +260,9 @@ class CorrelationMatrix:
 
         matrix = self.matrix
         # checking squareness of matrix
-        if matrix.shape[0] != matrix.shape[1]:
+        if len(matrix.shape) != 2:
+            validation_messages.append(("Matrix Non Square: ", matrix.shape))
+        elif matrix.shape[0] != matrix.shape[1]:
             validation_messages.append(("Matrix Dimensions Differ: ", matrix.shape))
         else:
             matrix_size = matrix.shape[0]
@@ -278,7 +280,7 @@ class CorrelationMatrix:
                 for j in range(matrix_size):
                     if matrix[i, j] != matrix[j, i]:
                         validation_messages.append(("Symmetry violating value: ", (i, j, matrix[i, j])))
-            # checking positive semi-definitess (non-negative eigenvalues)
+            # checking positive semi-definiteness (non-negative eigenvalues)
             Eigenvalues, Decomposition = eigh(matrix)
             if not np.all(Eigenvalues > - EIGENVALUE_TOLERANCE):
                 validation_messages.append(("Matrix is not positive semi-definite"))

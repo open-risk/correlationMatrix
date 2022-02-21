@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# (c) 2019 Open Risk, all rights reserved
+# (c) 2019-2022 Open Risk, all rights reserved
 #
 # correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
 # in the source distribution of correlationMatrix. This is notwithstanding any licenses of
@@ -12,19 +12,19 @@
 # either express or implied. See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''
+"""
 module correlationMatrix.utils - helper classes and functions
 
-'''
+"""
 
 import numpy as np
 import pandas as pd
 
 
 def csv_files_to_frame(list, directory, filename):
-    """
-        Given a list of symbols with timeseries data
-        - iterate through a directory for *.csv files
+    """ Given a list of symbols with timeseries data
+
+        - iterate through a directory for csv files
         - load and merge file data into a single dataframe
 
     """
@@ -45,24 +45,22 @@ def csv_files_to_frame(list, directory, filename):
 
 
 def json_file_to_frame(input_filename, output_filename):
-    """
-        Given a file name with json data in the format
-        {
-            "Entity1" : [Values],
-            "Entity2" : [Values],
-            ...
-            "EntityN" : [Values]
-        }
-        Convert the data to a pandas dataframe for further processing
+    """ Given a file name with json data in the format
+
+        .. code:: python
+
+            {
+                "Entity1" : [Values],
+                "Entity2" : [Values],
+                ...
+                "EntityN" : [Values]
+            }
+
+    Convert the data to a pandas dataframe for further processing
 
     """
 
-    entity_data = pd.read_json(input_filename)
-    # select_data = entity_data.drop(columns=['High', 'Low', 'Open', 'Close', 'Volume'])
-    # index_data = select_data.set_index('Date')
-    # rename_data = index_data.rename(columns={"Adj Close": entry_name})
-    # df = pd.concat([df, rename_data], axis=1, sort=False)
-    #
+    entity_data = pd.read_json(open(input_filename, mode='r'))
     entity_data.to_csv(output_filename, index=False)
 
     return entity_data
