@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# (c) 2019-2022 Open Risk, all rights reserved
+# (c) 2019-2023 Open Risk, all rights reserved
 #
 # correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
 # in the source distribution of correlationMatrix. This is notwithstanding any licenses of
@@ -24,7 +24,6 @@ import correlationMatrix as cm
 from correlationMatrix import source_path
 
 dataset_path = source_path + "datasets/"
-
 
 print("> Step 1: Load the data set into a pandas frame")
 data = pd.read_csv(dataset_path + 'synthetic_data1.csv')

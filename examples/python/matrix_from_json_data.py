@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-# (c) 2019-2022 Open Risk, all rights reserved
+# (c) 2019-2023 Open Risk, all rights reserved
 #
 # correlationMatrix is licensed under the Apache 2.0 license a copy of which is included
 # in the source distribution of correlationMatrix. This is notwithstanding any licenses of
