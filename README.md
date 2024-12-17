@@ -1,8 +1,9 @@
 Intro
 =========================
+
 correlationMatrix is a Python powered library for the statistical analysis and visualization of correlation 
 phenomena. It can be used to analyze any dataset that captures timestamped values (timeseries) 
-The present use cases focus on typical analyses of market correlations, e.g via factor models
+The present use cases focus on typical analysis of market correlations, e.g., via factor models
 
 You can use correlationMatrix to
 
@@ -30,7 +31,6 @@ Examples
 ========
 
 The examples directory contains examples illustrating the current functionality
-
 
 Display correlation matrix
 
