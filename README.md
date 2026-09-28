@@ -1,11 +1,9 @@
 Intro
 =========================
 
-correlationMatrix is a Python powered library for the statistical analysis and visualization of correlation 
-phenomena. It can be used to analyze any dataset that captures timestamped values (timeseries) 
-The present use cases focus on typical analysis of market correlations, e.g., via factor models
+correlationMatrix is a Python powered library for the statistical analysis and visualization of correlation phenomena. It can be used to analyze any dataset that captures timestamped values (timeseries) The present use cases focus on typical analysis of market correlations, e.g., via factor models
 
-You can use correlationMatrix to
+You can use correlationMatrix to:
 
 - Estimate correlation matrices from historical timeseries using a variety of models
 - Visualize correlation matrices
@@ -23,8 +21,7 @@ Key Information
 * General Discussions: [Open Risk Commons](https://www.openriskcommons.org/c/open-source/correlationmatrix/26)
 
 
-**NB: correlationMatrix is still in active development. If you encounter issues please raise them in our
-GitHub repository**
+**NB: correlationMatrix is still in active development. If you encounter issues please raise them in our GitHub repository**
 
 
 Examples
